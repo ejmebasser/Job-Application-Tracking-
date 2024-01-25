@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedUp",
+  "version": "1.0.0",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["inject.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LinkedUp"
+  },
+
+  "permissions": [
+    "scripting",
+    "tabs",
+    "activeTab", 
+    "storage"
+],
+"host_permissions": [
+    "http://*/*",
+    "https://*/*"
+],
+
+"background": {
+    "service_worker": "background.js"
+}
+}
