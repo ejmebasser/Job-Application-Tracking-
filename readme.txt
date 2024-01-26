@@ -1,6 +1,4 @@
 
-Certainly! Here's a revised version of your README:
-
 README
 Overview
 This application is designed to streamline your job search process by automating data collection from popular job sites such as LinkedIn, Indeed, and GlassDoor. With this program, the tedious task of manually copying and pasting job posting details into a spreadsheet is eliminated. Instead, the program efficiently scrapes job listings from the sites you visit and populates this data directly into a RESTful Google Sheet.
@@ -18,6 +16,7 @@ Enjoy a more efficient job search experience with our user-friendly application!
 
 
 THe HOW TO USE THE PROGRAM:
+
 
 Create a New Spreadsheet:
 
@@ -131,7 +130,7 @@ Update the popup.js File:
 
 In your Visual Studio Code editor, open the popup.js file.
 Update the variables on lines 1, 2, and 3 with the URL you just copied.
-Load the Extension:
+Load the Extension into your browsswer. 
 
 Save your changes in VS Code.
 Go to your Chrome browser and load the extension.
