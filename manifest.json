@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": ["https://www.linkedin.com/*", "https://www.indeed.com/*", "https://www.glassdoor.com/*"],
       "js": ["inject.js"]
     }
   ],
@@ -25,6 +25,6 @@
 ],
 
 "background": {
-    "service_worker": "background.js"
+  "service_worker": "background.js"
 }
 }

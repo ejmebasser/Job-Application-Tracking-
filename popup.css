@@ -1,0 +1,41 @@
+body {
+  width: 25em;
+  padding: 0;
+  margin: 0;
+}
+
+body hr {
+  width: 100%
+}
+
+header, #form, footer {
+  margin: 1em;
+}
+
+#form ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#form li, #form button {
+  margin: 0.5em 0em;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#form li label {
+  flex-grow: 1;
+  text-align: right;
+  margin-right: 1em;
+}
+
+#linkSheet {
+  background: none;
+  border: none;
+  
+}
