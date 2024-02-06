@@ -10,6 +10,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     return true; // Indicates that the response is asynchronous
   }
+  console.log(typeof chrome);
 });
 
 function formatCurrentDateTime() {

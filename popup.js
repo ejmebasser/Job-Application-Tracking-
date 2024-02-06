@@ -6,17 +6,33 @@ var getdailyURL =
   'https://script.google.com/macros/s/AKfycbwZSXOZTzz--npozzkW2FOiXBzd2HMV4hPh8Xy3w4u4tH3F-tACDydqTylDfWi6yS8h/exec';
 
 document.addEventListener('DOMContentLoaded', function () {
-  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { action: 'loadData' },
-      function (response) {
-        if (response) {
-          updateForm(response);
+  var loadDataButton = document.getElementById('loadDataButton');
+  loadDataButton.addEventListener('click', function () {
+    loadDataButton.style.display = 'none';
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      chrome.tabs.sendMessage(
+        tabs[0].id,
+        { action: 'loadData' },
+        function (response) {
+          if (response) {
+            createForm(response);
+          }
         }
-      }
-    );
+      );
+    });
   });
+  // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  //   chrome.tabs.sendMessage(
+  //     tabs[0].id,
+  //     { action: 'loadData' },
+  //     function (response) {
+  //       if (response) {
+  //         updateForm(response);
+  //       }
+  //     }
+  //   );
+  // });
 
   chrome.storage.local.get(['sheetURL'], function (result) {
     if (result.sheetURL) {
@@ -27,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function () {
   toggleCogFunction();
 });
 
+/**
+ * Function to handle the linkSheet button click event.
+ */
 function updateSheet() {
   const sheetElement = document.querySelector('#sheet');
   if (sheetElement.firstChild) {
@@ -47,6 +66,9 @@ function updateSheet() {
   toggleCogFunction(true);
 }
 
+/**
+ * Function to handle the saveSheet button click event.
+ */
 function saveSheet() {
   const sheetElement = document.querySelector('#sheet');
   const sheetURL = sheetElement.querySelector('input').value;
