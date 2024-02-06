@@ -1,13 +1,11 @@
-var postURL =
-  'https://script.google.com/macros/s/AKfycbz9vrxvqiHk9gFLxFU4FTsM2tHTo1leh1CYxVO3foM0BJMN7Srr1ohSAif1ftBM0PI/exec';
-var getURL =
-  'https://script.google.com/macros/s/AKfycbwmeb4AKGSoPc7-7URWWil_BpDWXueMiMmAcE6RnQWsKiabSB-1VeQhhucVLyyvWpXW/exec';
-var getdailyURL =
-  'https://script.google.com/macros/s/AKfycbwZSXOZTzz--npozzkW2FOiXBzd2HMV4hPh8Xy3w4u4tH3F-tACDydqTylDfWi6yS8h/exec';
+var postURL = 'https://script.google.com/macros/s/AKfycbz9vrxvqiHk9gFLxFU4FTsM2tHTo1leh1CYxVO3foM0BJMN7Srr1ohSAif1ftBM0PI/exec';
+var getURL = 'https://script.google.com/macros/s/AKfycbwmeb4AKGSoPc7-7URWWil_BpDWXueMiMmAcE6RnQWsKiabSB-1VeQhhucVLyyvWpXW/exec';
+var getdailyURL = 'https://script.google.com/macros/s/AKfycbwZSXOZTzz--npozzkW2FOiXBzd2HMV4hPh8Xy3w4u4tH3F-tACDydqTylDfWi6yS8h/exec'
 
 document.addEventListener('DOMContentLoaded', function () {
   var loadDataButton = document.getElementById('loadDataButton');
   loadDataButton.addEventListener('click', function () {
+    //alert("button clicked")
     loadDataButton.style.display = 'none';
 
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -16,12 +14,15 @@ document.addEventListener('DOMContentLoaded', function () {
         { action: 'loadData' },
         function (response) {
           if (response) {
-            createForm(response);
+            updateForm(response);
           }
         }
       );
-    });
+     });
   });
+  let jobForm = document.querySelector("#jobForm")
+  jobForm.addEventListener('submit',(e)=>{e.preventDefault()})
+
   // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
   //   chrome.tabs.sendMessage(
   //     tabs[0].id,
@@ -110,13 +111,18 @@ function toggleCogFunction(save = false) {
 }
 
 function updateForm(response) {
-  const form = document.querySelector('#jobForm');
+  const form = document.getElementById('submitButton');
   for (const id in response) {
+    try{
     document.querySelector(`input[name="${id}"]`).value = response[id];
+    }
+    catch{
+      console.log("error 14"); 
+    }
   }
 
-  form.addEventListener('submit', function (event) {
-    event.preventDefault();
+  form.addEventListener('click', function (event) {
+  //alert("function called on submit buton")
     submitFormData();
     appendSubmissionMessage();
     removeSubmitButton();
@@ -219,5 +225,6 @@ function logTotalJobsToday(data) {
 function updateResult(message) {
   const resultDiv = document.getElementById('result');
   const messageDiv = document.createElement('p');
+  messageDiv.textContent = message
   resultDiv.appendChild(messageDiv);
 }
