@@ -5,39 +5,48 @@ var getURL =
 var getdailyURL =
   'https://script.google.com/macros/s/AKfycbwZSXOZTzz--npozzkW2FOiXBzd2HMV4hPh8Xy3w4u4tH3F-tACDydqTylDfWi6yS8h/exec';
 
+/**
+ * Handling attaching mechanics after the DOM has been loaded.
+ */
 document.addEventListener('DOMContentLoaded', function () {
-  var loadDataButton = document.getElementById('loadDataButton');
-  loadDataButton.addEventListener('click', function () {
-    loadDataButton.style.display = 'none';
+  // var loadDataButton = document.getElementById('loadDataButton');
+  // loadDataButton.addEventListener('click', function () {
+  //   loadDataButton.style.display = 'none';
 
-    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-      chrome.tabs.sendMessage(
-        tabs[0].id,
-        { action: 'loadData' },
-        function (response) {
-          if (response) {
-            createForm(response);
-          }
-        }
-      );
-    });
-  });
-  // chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-  //   chrome.tabs.sendMessage(
-  //     tabs[0].id,
-  //     { action: 'loadData' },
-  //     function (response) {
-  //       if (response) {
-  //         updateForm(response);
+  //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+  //     chrome.tabs.sendMessage(
+  //       tabs[0].id,
+  //       { action: 'loadData' },
+  //       function (response) {
+  //         if (response) {
+  //           updateForm(response);
+  //         }
   //       }
-  //     }
-  //   );
+  //     );
+  //   });
   // });
+
+  chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: 'loadData' },
+      function (response) {
+        if (response) {
+          updateForm(response);
+        }
+      }
+    );
+  });
 
   chrome.storage.local.get(['sheetURL'], function (result) {
     if (result.sheetURL) {
       createSheetLink(result.sheetURL);
     }
+  });
+
+  const form = document.getElementById('jobForm');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
   });
 
   toggleCogFunction();
@@ -110,13 +119,17 @@ function toggleCogFunction(save = false) {
 }
 
 function updateForm(response) {
-  const form = document.querySelector('#jobForm');
   for (const id in response) {
-    document.querySelector(`input[name="${id}"]`).value = response[id];
+    try {
+      document.querySelector(`input[name="${id}"]`).value = response[id];
+    } catch (error) {
+      console.log('id not found', id);
+      console.error(error);
+    }
   }
 
-  form.addEventListener('submit', function (event) {
-    event.preventDefault();
+  const submit = document.getElementById('submitButton');
+  submit.addEventListener('click', function (event) {
     submitFormData();
     appendSubmissionMessage();
     removeSubmitButton();
@@ -219,5 +232,6 @@ function logTotalJobsToday(data) {
 function updateResult(message) {
   const resultDiv = document.getElementById('result');
   const messageDiv = document.createElement('p');
+  messageDiv.innerHTML = message;
   resultDiv.appendChild(messageDiv);
 }

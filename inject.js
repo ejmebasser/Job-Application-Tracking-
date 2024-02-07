@@ -40,19 +40,19 @@ function parseUrl(url) {
       company:
         '.job-details-jobs-unified-top-card__primary-description-without-tagline a',
       unknownInput: 'LinkedIn',
-      url: getURL('.jobs-search-results-list__list-item--active a'),
+      url: '.jobs-search-results-list__list-item--active a',
     },
     'www.indeed.com': {
       jobTitle: '.jobsearch-JobInfoHeader-title',
       company: '[data-testid="inlineHeader-companyName"]',
       unknownInput: 'Indeed',
-      url: getURL('.vjs-highlight .jobTitle a'),
+      url: '.vjs-highlight .jobTitle a',
     },
     'www.glassdoor.com': {
       jobTitle: '.JobDetails_jobTitle__Rw_gn',
       company: '.EmployerProfile_employerName__Xemli',
       unknownInput: 'GlassDoor',
-      url: getURL('.JobCard_selected__q_cLS .JobCard_trackingLink__zUSOo a'),
+      url: '.JobCard_selected__q_cLS .JobCard_trackingLink__zUSOo a',
     },
   };
 
@@ -62,7 +62,6 @@ function parseUrl(url) {
     unknownInput: '',
     applicationDateTime: formatCurrentDateTime(),
     url: 'N/A',
-    updateElement: '',
   };
 
   console.log(url);
@@ -73,7 +72,7 @@ function parseUrl(url) {
       storage.company = getText(element.company);
       storage.unknownInput = element.unknownInput;
       storage.applicationDateTime = formatCurrentDateTime();
-      storage.url = element.url;
+      storage.url = getURL(element.url);
     }
   }
   console.log(storage);
