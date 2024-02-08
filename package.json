@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "dotenv": "^16.4.1",
+    "webpack": "^5.90.1",
+    "webpack-cli": "^5.1.4"
+  }
+}

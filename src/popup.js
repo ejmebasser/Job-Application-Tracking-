@@ -1,31 +1,15 @@
-var postURL =
-  'https://script.google.com/macros/s/AKfycbz9vrxvqiHk9gFLxFU4FTsM2tHTo1leh1CYxVO3foM0BJMN7Srr1ohSAif1ftBM0PI/exec';
-var getURL =
-  'https://script.google.com/macros/s/AKfycbwmeb4AKGSoPc7-7URWWil_BpDWXueMiMmAcE6RnQWsKiabSB-1VeQhhucVLyyvWpXW/exec';
-var getdailyURL =
-  'https://script.google.com/macros/s/AKfycbwZSXOZTzz--npozzkW2FOiXBzd2HMV4hPh8Xy3w4u4tH3F-tACDydqTylDfWi6yS8h/exec';
+import {
+  submitFormData,
+  fetchTotalJobsApplied,
+  fetchTotalJobsAppliedToday,
+} from './appScriptConnector.js';
 
 /**
  * Handling attaching mechanics after the DOM has been loaded.
+ *
+ * I have tested this and the query only sends the message to scrape when the popup is opened.
  */
 document.addEventListener('DOMContentLoaded', function () {
-  // var loadDataButton = document.getElementById('loadDataButton');
-  // loadDataButton.addEventListener('click', function () {
-  //   loadDataButton.style.display = 'none';
-
-  //   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-  //     chrome.tabs.sendMessage(
-  //       tabs[0].id,
-  //       { action: 'loadData' },
-  //       function (response) {
-  //         if (response) {
-  //           updateForm(response);
-  //         }
-  //       }
-  //     );
-  //   });
-  // });
-
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     chrome.tabs.sendMessage(
       tabs[0].id,
@@ -118,10 +102,10 @@ function toggleCogFunction(save = false) {
   cog.addEventListener('click', clickFunction);
 }
 
-function updateForm(response) {
-  for (const id in response) {
+function updateForm(formJson) {
+  for (const id in formJson) {
     try {
-      document.querySelector(`input[name="${id}"]`).value = response[id];
+      document.querySelector(`input[name="${id}"]`).value = formJson[id];
     } catch (error) {
       console.log('id not found', id);
       console.error(error);
@@ -129,41 +113,38 @@ function updateForm(response) {
   }
 
   const submit = document.getElementById('submitButton');
-  submit.addEventListener('click', function (event) {
-    submitFormData();
-    appendSubmissionMessage();
-    removeSubmitButton();
-    fetchTotalJobsApplied();
-    fetchTotalJobsAppliedToday();
-  });
+  submit.addEventListener(
+    'click',
+    debounce(() => handleSubmit(formJson), 500)
+  );
 }
 
-function submitFormData() {
-  var form = document.getElementById('jobForm');
-  var formData = new FormData(form);
-  var object = {};
-  formData.forEach((value, key) => {
-    object[key] = value;
-  });
-
-  // Fetch request to send the JSON data using baseURL with action parameter
-  fetch(postURL + '?action=addUser', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(object),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Response:', data);
-      fetchTotalJobsApplied(); // Fetch total jobs applied after successful submission
+function handleSubmit(formJson) {
+  submitFormData(formJson)
+    .then((response) => {
+      if (response.ok) {
+        appendResult('Data Submitted');
+        removeSubmitButton();
+      }
     })
-    .catch((error) => console.error('Error:', error));
-}
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  fetchTotalJobsApplied()
+    .then((totalJobs) => {
+      logTotalJobs(totalJobs);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
 
-function appendSubmissionMessage() {
-  updateResult('Data Submitted');
+  fetchTotalJobsAppliedToday()
+    .then((jobsToday) => {
+      logTotalJobsToday(jobsToday);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
 }
 
 function removeSubmitButton() {
@@ -171,20 +152,6 @@ function removeSubmitButton() {
   if (submitButton) {
     submitButton.remove();
   }
-}
-
-function fetchTotalJobsApplied() {
-  // Fetch request using baseURL with a different action parameter
-  fetch(getURL + '?action=getUsers', {
-    method: 'GET',
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      logTotalJobs(data);
-      console.log(data);
-      // console.alert(data) // Correct this to console.log or alert
-    })
-    .catch((error) => console.error('Error fetching total jobs:', error));
 }
 
 function logTotalJobs(data) {
@@ -198,21 +165,7 @@ function logTotalJobs(data) {
     jobsMessage = 'Unable to find total jobs data';
   }
 
-  updateResult(jobsMessage);
-}
-
-function fetchTotalJobsAppliedToday() {
-  fetch(getdailyURL + '?action=getDailyTotal', {
-    method: 'GET',
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log('Daily Total Response:', data); // Log the response
-      logTotalJobsToday(data);
-    })
-    .catch((error) => {
-      console.error('Error fetching total jobs today:', error); // Log any errors
-    });
+  appendResult(jobsMessage);
 }
 
 function logTotalJobsToday(data) {
@@ -226,12 +179,29 @@ function logTotalJobsToday(data) {
     jobsMessage = 'Unable to find total jobs data for today';
   }
 
-  updateResult(jobsMessage);
+  appendResult(jobsMessage);
 }
 
-function updateResult(message) {
+function appendResult(message) {
   const resultDiv = document.getElementById('result');
   const messageDiv = document.createElement('p');
   messageDiv.innerHTML = message;
   resultDiv.appendChild(messageDiv);
+}
+
+function debounce(func, delay) {
+  let timeoutId;
+  let called = false; // Flag to track if the function has been called already
+  return function () {
+    const context = this;
+    const args = arguments;
+    if (!called) {
+      clearTimeout(timeoutId);
+      called = true;
+      timeoutId = setTimeout(() => {
+        func.apply(context, args);
+        called = false; // Reset the flag after the function is called
+      }, delay);
+    }
+  };
 }
