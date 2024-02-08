@@ -2,7 +2,7 @@ import {
   submitFormData,
   fetchTotalJobsApplied,
   fetchTotalJobsAppliedToday,
-} from './appScriptConnector.js';
+} from '../utils/appScriptConnector.js';
 
 import { createSheetLink, toggleCogFunction } from './sheet.js';
 

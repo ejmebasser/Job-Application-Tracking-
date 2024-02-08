@@ -118,20 +118,52 @@ if (window.location.href.includes('www.linkedin.com/jobs')) {
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
  */
 function sendFormDataOnEasyApply() {
-  const applyButton = document.querySelector(
-    '.jobs-apply-button span.artdeco-button__text'
-  );
-  if (applyButton && applyButton.innerText.toLowerCase() === 'easy apply') {
+  const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';
+  const applyDivClass = '.jobs-s-apply';
+  const postApplyClass = 'artdeco-inline-feedback--success';
+
+  const easyApplyButton = document.querySelector(easyApplyButtonClass);
+
+  let observer;
+  if (
+    !observer && // If the observer is not already attached
+    easyApplyButton &&
+    easyApplyButton.innerText.toLowerCase() === 'easy apply'
+  ) {
     // Easy apply has been found
     console.log('Easy Apply found!');
+    const jobElement = document.querySelector(applyDivClass);
 
-    // Now we need to send this to the Google Sheet.
-    const pageMap = parseUrl(window.location.href);
-    chrome.runtime.sendMessage({ action: 'saveData' }, function (response) {
-      // Store the data in Chrome's local storage
-      chrome.storage.local.set(pageMap, function () {
-        console.log('Data saved:', pageMap);
-      });
+    console.log('Create observer for:', jobElement);
+    observer = new MutationObserver((mutations, sent = sentApplication) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          for (const node of mutation.addedNodes) {
+            // console.log('Node:', node);
+            if (
+              node.nodeType === 1 &&
+              node.classList.contains(postApplyClass)
+            ) {
+              // Now we need to send this to the Google Sheet.
+              sentApplication = true;
+              console.log('Sending data to Google Sheet...');
+              const pageMap = parseUrl(window.location.href);
+
+              chrome.runtime.sendMessage(
+                { action: 'saveJob', formData: pageMap },
+                function (response) {
+                  console.log('Data sent:', pageMap);
+                  console.log('Response:', response);
+                }
+              );
+            }
+          }
+        }
+      }
     });
+    const config = { childList: true, subtree: true };
+
+    console.log('Attach observer to:', jobElement);
+    observer.observe(jobElement, config);
   }
 }

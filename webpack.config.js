@@ -1,10 +1,14 @@
 const path = require('path');
 
 module.exports = {
-  entry: './src/popup.js',
+  entry: {
+    background: './src/background.js',
+    popup: './src/popup/main.js',
+    inject: './src/inject.js',
+  },
   mode: 'none',
   output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname),
+    filename: '[name].bundle.js',
+    path: path.resolve(__dirname, 'dist'),
   },
 };
