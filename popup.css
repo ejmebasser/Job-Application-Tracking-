@@ -12,6 +12,20 @@ header, #form, footer {
   margin: 1em;
 }
 
+#sheetSection {
+  display: table;
+  width: 100%;
+}
+
+#sheetSection > #sheet {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#sheetSection > button {
+  float: right;
+}
+
 #form ul {
   list-style: none;
   margin: 0;

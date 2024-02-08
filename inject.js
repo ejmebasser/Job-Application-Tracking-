@@ -121,13 +121,17 @@ function sendFormDataOnEasyApply() {
   const applyButton = document.querySelector(
     '.jobs-apply-button span.artdeco-button__text'
   );
-  console.log(applyButton.innerText);
   if (applyButton && applyButton.innerText.toLowerCase() === 'easy apply') {
     // Easy apply has been found
     console.log('Easy Apply found!');
 
-    // Store data in Chrome's local storage and send response
-    const formData = new FormData(parseUrl(pageUrl));
-    submitFormData(formData);
+    // Now we need to send this to the Google Sheet.
+    const pageMap = parseUrl(window.location.href);
+    chrome.runtime.sendMessage({ action: 'saveData' }, function (response) {
+      // Store the data in Chrome's local storage
+      chrome.storage.local.set(pageMap, function () {
+        console.log('Data saved:', pageMap);
+      });
+    });
   }
 }

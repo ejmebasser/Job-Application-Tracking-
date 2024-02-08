@@ -1,3 +1,5 @@
+import { submitFormData } from './src/appScriptConnector';
+
 // function that injects code to a specific tab
 function injectScript(tabId) {
   chrome.scripting.executeScript({
@@ -30,6 +32,12 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === 'loadSheet') {
     sheetURL = request.sheetURL;
     chrome.storage.local.set({ sheetURL: sheetURL });
+  }
+
+  if (request.action === 'saveJob') {
+    console.log('Save Job Request caught in background.js');
+    console.log('Request:', request);
+    submitFormData(request.formData);
   }
 });
 

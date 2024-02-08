@@ -4,6 +4,8 @@ import {
   fetchTotalJobsAppliedToday,
 } from './appScriptConnector.js';
 
+import { createSheetLink, toggleCogFunction } from './sheet.js';
+
 /**
  * Handling attaching mechanics after the DOM has been loaded.
  *
@@ -37,75 +39,14 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * Function to handle the linkSheet button click event.
+ * Updates the form with the data from the website.
+ *
+ * @param {object} formData The object to populate the form with.
  */
-function updateSheet() {
-  const sheetElement = document.querySelector('#sheet');
-  if (sheetElement.firstChild) {
-    sheetElement.removeChild(sheetElement.firstChild);
-  }
-
-  const sheetInput = document.createElement('input');
-  sheetInput.type = 'text';
-  sheetInput.id = 'sheetUrl';
-  sheetInput.onkeydown = function (event) {
-    if (event.key === 'Enter') {
-      sheetURL = sheetInput.value;
-      saveSheet();
-    }
-  };
-  sheetElement.appendChild(sheetInput);
-
-  toggleCogFunction(true);
-}
-
-/**
- * Function to handle the saveSheet button click event.
- */
-function saveSheet() {
-  const sheetElement = document.querySelector('#sheet');
-  const sheetURL = sheetElement.querySelector('input').value;
-  console.log(sheetURL);
-
-  if (sheetElement.firstChild) {
-    sheetElement.removeChild(sheetElement.firstChild);
-  }
-  if (!sheetURL) {
-    const textElement = document.createElement('span');
-    textElement.textContent = 'No Google Sheet URL provided';
-    sheetElement.appendChild(textElement);
-  } else {
-    createSheetLink(sheetURL);
-
-    chrome.runtime.sendMessage({ action: 'loadSheet', sheetURL: sheetURL });
-  }
-
-  toggleCogFunction(false);
-}
-
-function createSheetLink(sheetURL) {
-  const sheetElement = document.querySelector('#sheet');
-
-  const link = document.createElement('a');
-  link.text = 'Open Google Sheet';
-  link.href = sheetURL;
-  link.target = '_blank';
-  sheetElement.appendChild(link);
-}
-
-function toggleCogFunction(save = false) {
-  const clickFunction = save ? saveSheet : updateSheet;
-  const oldFunction = save ? updateSheet : saveSheet;
-
-  const cog = document.querySelector('#linkSheet');
-  cog.removeEventListener('click', oldFunction);
-  cog.addEventListener('click', clickFunction);
-}
-
-function updateForm(formJson) {
-  for (const id in formJson) {
+function updateForm(formData) {
+  for (const id in formData) {
     try {
-      document.querySelector(`input[name="${id}"]`).value = formJson[id];
+      document.querySelector(`input[name="${id}"]`).value = formData[id];
     } catch (error) {
       console.log('id not found', id);
       console.error(error);
@@ -115,11 +56,17 @@ function updateForm(formJson) {
   const submit = document.getElementById('submitButton');
   submit.addEventListener(
     'click',
-    debounce(() => handleSubmit(formJson), 500)
+    debounce(() => handleSubmit(formData), 500)
   );
 }
 
+/**
+ * Handles what happens when we submit data to the Google Sheet.
+ *
+ * @param {object} formJson
+ */
 function handleSubmit(formJson) {
+  // submit the form data to Google Apps Script
   submitFormData(formJson)
     .then((response) => {
       if (response.ok) {
@@ -130,6 +77,8 @@ function handleSubmit(formJson) {
     .catch((error) => {
       console.error('Error:', error);
     });
+
+  // fetch the total jobs applied to from Google Apps Script
   fetchTotalJobsApplied()
     .then((totalJobs) => {
       logTotalJobs(totalJobs);
@@ -138,6 +87,7 @@ function handleSubmit(formJson) {
       console.error('Error:', error);
     });
 
+  // fetch the total jobs applied to today from Google Apps Script
   fetchTotalJobsAppliedToday()
     .then((jobsToday) => {
       logTotalJobsToday(jobsToday);
@@ -147,6 +97,9 @@ function handleSubmit(formJson) {
     });
 }
 
+/**
+ * Removes the submit button from the popup.
+ */
 function removeSubmitButton() {
   var submitButton = document.getElementById('submitButton');
   if (submitButton) {
@@ -154,6 +107,11 @@ function removeSubmitButton() {
   }
 }
 
+/**
+ * Display the total jobs applied to.
+ *
+ * @param {object} data The data returned from the Google Apps Script for the total jobs applied to.
+ */
 function logTotalJobs(data) {
   let jobsMessage = '';
 
@@ -168,9 +126,15 @@ function logTotalJobs(data) {
   appendResult(jobsMessage);
 }
 
+/**
+ * Display the total jobs applied to today.
+ *
+ * @param {object} data The data returned from the Google Apps Script for the total jobs applied to today.
+ */
 function logTotalJobsToday(data) {
   let jobsMessage = '';
 
+  // Check if the data is in the expected nested array format
   if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
     const totalJobsToday = data[0][0];
     jobsMessage = `${totalJobsToday} jobs applied to in total today`;
@@ -182,6 +146,11 @@ function logTotalJobsToday(data) {
   appendResult(jobsMessage);
 }
 
+/**
+ * Append a message to the result div.
+ *
+ * @param {string} message The message to append.
+ */
 function appendResult(message) {
   const resultDiv = document.getElementById('result');
   const messageDiv = document.createElement('p');
@@ -189,6 +158,13 @@ function appendResult(message) {
   resultDiv.appendChild(messageDiv);
 }
 
+/**
+ * Debounce function to limit the rate of function calls.
+ *
+ * @param {Function} func The function to debounce
+ * @param {int} delay The delay in milliseconds
+ * @returns function with debounce
+ */
 function debounce(func, delay) {
   let timeoutId;
   let called = false; // Flag to track if the function has been called already

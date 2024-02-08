@@ -1,12 +1,9 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 /**
  * This is the Apps Scripts script that will be used to interact with the Google Sheet.
  * This will need to be deployed to the user, and be specific to a user's Google account.
  */
 
-const wbookID = process.env.WORKBOOK_ID;
+const wbookID = '1o7XBilaVR3bLHaqAADiJMgHs1dscsH_ezZuXHiAqdfU';
 const sheetName = 'Sheet1';
 
 const wbook = SpreadsheetApp.openById(wbookID);

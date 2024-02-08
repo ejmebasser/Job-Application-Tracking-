@@ -1,7 +1,5 @@
-import dotenv from 'dotenv';
-
-dotenv.config();
-const doPostUrl = process.env.DO_POST_URL;
+const doPostUrl =
+  'https://script.google.com/macros/s/AKfycbwr3w6msxSLbQaKl_ohpZbng0M3gRojzqqiOorKoreVKMLjky64ZzRDJfWAR4h28Hdyxg/exec';
 
 /**
  * Submits the form data to the Google Sheet.
