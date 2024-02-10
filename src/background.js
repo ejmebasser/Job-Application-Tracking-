@@ -1,5 +1,9 @@
 import { submitFormData } from './utils/appScriptConnector';
 
+chrome.action.onClicked.addListener((tab) => {
+  chrome.tabs.create({ url: 'popup.html' });
+});
+
 // function that injects code to a specific tab
 function injectScript(tabId) {
   chrome.scripting.executeScript({
