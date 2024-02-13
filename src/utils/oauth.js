@@ -2,16 +2,15 @@ export default class OAuth {
   constructor(settingsForm) {
     this.settingsForm = settingsForm;
 
-    this.initilaize();
+    this.getOAuth();
 
-    this.searchFile = this.searchFile.bind(this);
+    this.searchFile = this.getSheets.bind(this);
   }
 
-  async initilaize() {
+  async getOAuth() {
     this.authToken = await this.getAuthToken();
 
-    this.files = await this.searchFile();
-    this.populateSheetList(this.files);
+    return this;
   }
 
   getAuthToken() {
@@ -27,7 +26,7 @@ export default class OAuth {
     });
   }
 
-  searchFile() {
+  getSheets() {
     const url =
       'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"';
 
@@ -56,64 +55,6 @@ export default class OAuth {
     });
   }
 
-  /**
-   * Populate sheetId list from Google Drive.
-   */
-  async populateSheetList(files) {
-    const sheetInput = this.settingsForm.querySelector('input[name="sheetId"]');
-    if (!sheetInput) {
-      return;
-    }
-
-    const sheetSelector = document.createElement('select');
-
-    for (let i = 0; i < sheetInput.attributes.length; i++) {
-      const attr = sheetInput.attributes[i];
-      sheetSelector.setAttribute(attr.name, attr.value);
-    }
-
-    files.forEach((sheet) => {
-      const option = document.createElement('option');
-      option.value = sheet.id;
-      option.text = sheet.name;
-      sheetSelector.appendChild(option);
-    });
-
-    this.populateSheetNameList(files[0].id);
-
-    sheetSelector.addEventListener('change', (event) => {
-      this.populateSheetNameList(event.target.value);
-    });
-    sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
-  }
-
-  async populateSheetNameList(spreadsheetId) {
-    const sheetNames = await this.getSheetNames(spreadsheetId);
-
-    const sheetInput = this.settingsForm.querySelector(
-      'input[name="sheetName"], select[name="sheetName"]'
-    );
-    const sheetSelector = document.createElement('select');
-
-    for (let i = 0; i < sheetInput.attributes.length; i++) {
-      const attr = sheetInput.attributes[i];
-      sheetSelector.setAttribute(attr.name, attr.value);
-    }
-
-    sheetNames.forEach((sheet) => {
-      const option = document.createElement('option');
-      option.value = sheet;
-      option.text = sheet;
-      sheetSelector.appendChild(option);
-    });
-
-    sheetSelector.addEventListener('change', (event) => {
-      this.settingsForm.querySelector('input[name="sheetName"]').value =
-        event.target.value;
-    });
-    sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
-  }
-
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
 
@@ -136,12 +77,12 @@ export default class OAuth {
   }
 
   async getSheetValues(cell) {
-    let { sheetId, sheetName } = chrome.storage.local.get([
+    let { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
 
-    sheetName = sheetName + '!' + cell;
+    sheetName += '!' + cell;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
 
     return new Promise((resolve, reject) => {
@@ -161,22 +102,29 @@ export default class OAuth {
     });
   }
 
-  async appendValues(_values) {
+  async appendValues(jsonData) {
     let { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
+    const valueInputOption = 'USER_ENTERED';
 
-    sheetName = sheetName + '!A1';
-    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}:append`;
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}:append?valueInputOption=${valueInputOption}`;
 
-    const values = [
-      _values, // values array
-      // additional rows (from documentation)
-    ];
     const resource = {
-      values,
+      range: sheetName,
+      majorDimension: 'ROWS',
+      values: [
+        [
+          jsonData.jobTitle,
+          jsonData.company,
+          jsonData.source,
+          jsonData.applicationDateTime,
+          jsonData.url,
+        ],
+      ],
     };
+    console.log(resource);
     console.log(this.authToken);
 
     return new Promise((resolve, reject) => {
@@ -188,10 +136,7 @@ export default class OAuth {
         },
         body: JSON.stringify(resource),
       })
-        .then((response) => response.json())
-        .then((data) => {
-          resolve(data);
-        })
+        .then((response) => resolve(response))
         .catch((error) => {
           console.error(error);
           reject(error);

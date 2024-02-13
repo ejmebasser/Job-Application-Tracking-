@@ -29,15 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
     job.loadData(tabs)
   );
 
-  chrome.storage.local.get(['sheetId', 'consent'], function (result) {
-    settings.updateSettingValues(result.sheetId, result.consent);
-    if (!result.sheetId) {
-      settings.toggleCogFunction();
-    } else {
-      settings.createSheetLink(result.sheetId);
-    }
-  });
-
   document
     .querySelector('#settingsButton')
     .addEventListener('click', settings.toggleCogFunction);

@@ -21,10 +21,10 @@ export default class JobForm {
     );
   }
 
-  async initializeOauth() {
+  async getOauth() {
     if (!this.oauth) {
-      this.oauth = new OAuth();
-      await this.oauth.initilaize();
+      const oauth = new OAuth();
+      this.oauth = await oauth.getOAuth();
     }
 
     return this.oauth;
@@ -60,20 +60,21 @@ export default class JobForm {
    * Handles what happens when we submit data to the Google Sheet.
    */
   async handleSubmit() {
-    console.log('handleSubmit');
-
     const formJson = this.formToJson();
-    console.log(formJson);
 
-    const oauth = await this.initializeOauth();
+    const oauth = await this.getOauth();
 
     // submit the form data to Google Apps Script
     oauth
       .appendValues(formJson)
       .then((response) => {
+        console.log(response);
         if (response.ok) {
-          appendResult('Data Submitted');
+          this.appendResult('Data Submitted');
           removeSubmitButton();
+        } else {
+          console.log(response);
+          this.appendResult('Error submitting data');
         }
       })
       .catch((error) => {
@@ -88,11 +89,12 @@ export default class JobForm {
   }
 
   async fetchTotalJobsApplied() {
-    const oauth = await this.initializeOauth();
+    const oauth = await this.getOauth();
     oauth
       .getSheetValues('H1')
-      .then((totalJobs) => {
-        logTotalJobs(totalJobs);
+      .then((data) => {
+        const totalJobs = data.values[0];
+        this.appendResult(`${totalJobs} jobs applied to in total`);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -100,11 +102,12 @@ export default class JobForm {
   }
 
   async fetchTotalJobsAppliedToday() {
-    const oauth = await this.initializeOauth();
+    const oauth = await this.getOauth();
     oauth
       .getSheetValues('J1')
-      .then((totalJobsToday) => {
-        logTotalJobsToday(totalJobsToday);
+      .then((data) => {
+        const totalJobsToday = data.values[0];
+        this.appendResult(`${totalJobsToday} jobs applied to in total today`);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -119,45 +122,6 @@ export default class JobForm {
     if (submitButton) {
       submitButton.remove();
     }
-  }
-
-  /**
-   * Display the total jobs applied to.
-   *
-   * @param {object} data The data returned from the Google Apps Script for the total jobs applied to.
-   */
-  logTotalJobs(data) {
-    let jobsMessage = '';
-
-    // Check if the data is in the expected nested array format
-    if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
-      const totalJobs = data[0][0];
-      jobsMessage = `${totalJobs} jobs applied to in total`;
-    } else {
-      jobsMessage = 'Unable to find total jobs data';
-    }
-
-    appendResult(jobsMessage);
-  }
-
-  /**
-   * Display the total jobs applied to today.
-   *
-   * @param {object} data The data returned from the Google Apps Script for the total jobs applied to today.
-   */
-  logTotalJobsToday(data) {
-    let jobsMessage = '';
-
-    // Check if the data is in the expected nested array format
-    if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
-      const totalJobsToday = data[0][0];
-      jobsMessage = `${totalJobsToday} jobs applied to in total today`;
-    } else {
-      console.error('Data format is not as expected:', data); // Log unexpected data format
-      jobsMessage = 'Unable to find total jobs data for today';
-    }
-
-    appendResult(jobsMessage);
   }
 
   /**

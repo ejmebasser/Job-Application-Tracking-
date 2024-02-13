@@ -47,8 +47,22 @@ chrome.runtime.onMessage.addListener(async function (
   }
 });
 
+let sheetURL;
+let sheetName;
+let consent;
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(
+    ['sheetId', 'sheetName', 'consent'],
+    function (result) {
+      sheetURL = result.sheetId;
+      consent = result.consent;
+      sheetName = result.sheetName;
+    }
+  );
+});
+
 async function initializeOauth() {
-  const oauth = new OAuth(this.form);
-  await this.oauth.initilaize();
+  let oauth = new OAuth(this.form);
+  oauth = await oauth.initilaize();
   return oauth;
 }
