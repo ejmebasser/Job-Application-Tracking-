@@ -1,5 +1,7 @@
 {
   "devDependencies": {
+    "google-auth-library": "^9.6.3",
+    "googleapis": "^133.0.0",
     "webpack": "^5.90.1",
     "webpack-cli": "^5.1.4"
   }

@@ -30,8 +30,8 @@
 ],
 "oauth2": {
   "client_id": "40510895582-6gg1iiips6aq3rf2kl1c50deg4nlsv46.apps.googleusercontent.com",
-  "scopes": [""]
-}
+  "scopes": ["https://www.googleapis.com/auth/spreadsheets.readonly", "https://www.googleapis.com/auth/drive.file"]
+},
 "background": {
   "service_worker": "dist/background.bundle.js"
 }
