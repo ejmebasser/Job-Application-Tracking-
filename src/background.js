@@ -26,29 +26,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   }
 });
 
-let sheetURL = null;
-
 /**
  *  Adds a listener for the 'loadSheet' action.
  *  This will save the sheetURL to the chrome storage.
  */
 chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
   if (message.action === 'loadSheet') {
-    chrome.storage.local.set({ sheetURL: message.sheetURL });
+    chrome.storage.local.set({ sheetId: message.sheetId });
   }
 
   if (message.action === 'saveJob') {
     sendResponse(submitFormData(message.formData));
   }
-});
-
-/**
- * This will load the sheetURL from the chrome storage when the extension is loaded.
- */
-chrome.runtime.onInstalled.addListener(function () {
-  chrome.storage.local.get(['sheetURL'], function (result) {
-    if (result.sheetURL) {
-      sheetURL = result.sheetURL;
-    }
-  });
 });

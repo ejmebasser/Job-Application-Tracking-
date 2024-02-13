@@ -131,22 +131,18 @@ function sendFormDataOnEasyApply() {
     easyApplyButton.innerText.toLowerCase() === 'easy apply'
   ) {
     // Easy apply has been found
-    console.log('Easy Apply found!');
     const jobElement = document.querySelector(applyDivClass);
 
-    console.log('Create observer for:', jobElement);
     observer = new MutationObserver((mutations, sent = sentApplication) => {
       for (const mutation of mutations) {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
           for (const node of mutation.addedNodes) {
-            // console.log('Node:', node);
             if (
               node.nodeType === 1 &&
               node.classList.contains(postApplyClass)
             ) {
               // Now we need to send this to the Google Sheet.
               sentApplication = true;
-              console.log('Sending data to Google Sheet...');
               const pageMap = parseUrl(window.location.href);
 
               chrome.runtime.sendMessage(
@@ -163,7 +159,6 @@ function sendFormDataOnEasyApply() {
     });
     const config = { childList: true, subtree: true };
 
-    console.log('Attach observer to:', jobElement);
     observer.observe(jobElement, config);
   }
 }
