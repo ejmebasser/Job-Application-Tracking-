@@ -1,7 +1,7 @@
-import { submitFormData } from './utils/appScriptConnector';
+import OAuth from './utils/oauth';
 
 chrome.action.onClicked.addListener((tab) => {
-  chrome.tabs.create({ url: 'popup.html' });
+  chrome.tabs.openPopup();
 });
 
 // function that injects code to a specific tab
@@ -9,6 +9,7 @@ function injectScript(tabId) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     files: ['dist/inject.bundle.js'],
+    // files: ['inject.js'],
   });
 }
 
@@ -30,12 +31,24 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
  *  Adds a listener for the 'loadSheet' action.
  *  This will save the sheetURL to the chrome storage.
  */
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(async function (
+  message,
+  sender,
+  sendResponse
+) {
   if (message.action === 'loadSheet') {
     chrome.storage.local.set({ sheetId: message.sheetId });
   }
 
   if (message.action === 'saveJob') {
-    sendResponse(submitFormData(message.formData));
+    const oauth = await initializeOauth();
+
+    sendResponse(oauth.appendValues(message.formData));
   }
 });
+
+async function initializeOauth() {
+  const oauth = new OAuth(this.form);
+  await this.oauth.initilaize();
+  return oauth;
+}

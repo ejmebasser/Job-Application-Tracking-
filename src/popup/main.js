@@ -1,18 +1,15 @@
-import {
-  submitFormData,
-  fetchTotalJobsApplied,
-  fetchTotalJobsAppliedToday,
-} from '../utils/appScriptConnector.js';
-
 import Settings from './settings.js';
 import JobForm from './jobForm.js';
+import OAuth from '../utils/oauth.js';
 
-const settingsForm = document.querySelector('form#settings');
-const jobForm = document.querySelector('form#jobForm');
-const sheetElement = document.querySelector('#sheet');
+// declaring these as global variables so they can be more available to the rest of the code
+let settingsForm;
+let jobForm;
+let sheetElement;
 
-const settings = new Settings(jobForm, settingsForm, sheetElement);
-const job = new JobForm(jobForm);
+let settings;
+let job;
+let oauth;
 
 /**
  * Handling attaching mechanics after the DOM has been loaded.
@@ -20,9 +17,17 @@ const job = new JobForm(jobForm);
  * I have tested this and the query only sends the message to scrape when the popup is opened.
  */
 document.addEventListener('DOMContentLoaded', function () {
-  chrome.tabs.query({ active: true, currentWindow: true }, loadData);
+  settingsForm = document.querySelector('form#settings');
+  jobForm = document.querySelector('form#jobForm');
+  sheetElement = document.querySelector('#sheet');
 
-  document.querySelector('#loadData').addEventListener('click', loadData);
+  settings = new Settings(jobForm, settingsForm, sheetElement);
+  job = new JobForm(jobForm);
+  oauth = new OAuth(settingsForm);
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
+    job.loadData(tabs)
+  );
 
   chrome.storage.local.get(['sheetId', 'consent'], function (result) {
     settings.updateSettingValues(result.sheetId, result.consent);
@@ -33,26 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  settingsForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-  });
-  jobForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-  });
-
   document
     .querySelector('#settingsButton')
     .addEventListener('click', settings.toggleCogFunction);
 });
-
-const loadData = (tabs) => {
-  chrome.tabs.sendMessage(
-    tabs[0].id,
-    { action: 'loadData' },
-    function (response) {
-      if (response) {
-        job.updateForm(response);
-      }
-    }
-  );
-};

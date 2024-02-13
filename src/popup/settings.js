@@ -23,29 +23,11 @@ export default class Settings {
     this.toggleCogFunction = this.toggleCogFunction.bind(this);
     this.saveSheet = this.saveSheet.bind(this);
 
+    this.settingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+    });
     this.submitButton = settingsForm.getElementsByTagName('button')[0];
     this.submitButton.addEventListener('click', this.saveSheet);
-  }
-
-  /**
-   * Function to handle the linkSheet button click event.
-   */
-  updateSheet() {
-    // if (this.sheetElement.firstChild) {
-    //   sheetElement.removeChild(sheetElement.firstChild);
-    // }
-    // const sheetInput = document.createElement('input');
-    // sheetInput.type = 'text';
-    // sheetInput.id = 'sheetUrl';
-    // sheetInput.placeholder = 'Enter Google Sheet URL';
-    // sheetInput.onkeydown = function (event) {
-    //   if (event.key === 'Enter') {
-    //     sheetURL = sheetInput.value;
-    //     saveSheet();
-    //   }
-    // };
-    // sheetElement.appendChild(sheetInput);
-    // toggleCogFunction(true);
   }
 
   /**
@@ -53,21 +35,35 @@ export default class Settings {
    */
   saveSheet() {
     const sheetId = this.settingsForm.querySelector(
-      'input[name="sheetId"]'
+      'input[name="sheetId"], select[name="sheetId"]'
     ).value;
     const consent = this.settingsForm.querySelector(
       'input[type="checkbox"]'
     ).checked;
+    const sheetName = this.settingsForm.querySelector(
+      'input[name="sheetName"], select[name="sheetName"]'
+    ).value;
 
     if (sheetId) {
       this.createSheetLink(sheetId);
-      chrome.runtime.sendMessage({ action: 'loadSheet', sheetId: sheetId });
+      chrome.runtime.sendMessage({
+        action: 'loadSheet',
+        sheetId: sheetId,
+        consent: consent,
+        sheetName: sheetName,
+      });
     }
-    this.storeSettingsValues(sheetId, consent);
+    this.storeSettingsValues(sheetId, consent, sheetName);
 
     this.toggleCogFunction();
   }
 
+  /**
+   * Create the URL link to the Google Sheet using the sheetId.
+   *
+   * @param {string} sheetId
+   * @returns {string} The URL to the Google Sheet.
+   */
   buildSheetURL(sheetId) {
     return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/edit#gid=0';
   }
@@ -84,14 +80,18 @@ export default class Settings {
   /**
    * Update the values of the settings fields.
    */
-  updateSettingValues(sheetId = '', consent = true) {
-    // this.settingsForm.getElementByName('sheetId').value = sheetURL;
-    // this.settingsForm.getElementByName('consent').value = consent;
+  updateSettingValues(sheetId = '', consent = true, sheetName = '') {
     this.sheetURL = sheetId;
     this.consent = consent;
+    this.sheetName = sheetName;
 
     this.settingsForm.querySelector('input[type="checkbox"]').checked = consent;
-    this.settingsForm.querySelector('input[name="sheetId"]').value = sheetId;
+    this.settingsForm.querySelector(
+      'input[name="sheetId"], select[name="sheetId"]'
+    ).value = sheetId;
+    this.settingsForm.querySelector(
+      'input[name="sheetName"], select[name="sheetName"]'
+    ).value = sheetName;
   }
 
   /**
@@ -113,7 +113,11 @@ export default class Settings {
   /**
    * Store the values of the settings fields in Chrome's local storage.
    */
-  storeSettingsValues(sheetId, consent) {
-    chrome.storage.local.set({ sheetId: sheetId, consent: consent });
+  storeSettingsValues(sheetId, consent, sheetName) {
+    chrome.storage.local.set({
+      sheetId: sheetId,
+      consent: consent,
+      sheetName: sheetName,
+    });
   }
 }

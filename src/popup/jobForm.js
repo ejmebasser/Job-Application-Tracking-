@@ -1,8 +1,33 @@
+import OAuth from '../utils/oauth.js';
+
 export default class JobForm {
   constructor(element) {
     this.form = element;
 
     this.updateForm = this.updateForm.bind(this);
+    this.loadData = this.loadData.bind(this);
+    this.formToJson = this.formToJson.bind(this);
+
+    this.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+    });
+
+    this.form
+      .querySelector('#loadData')
+      .addEventListener('click', this.loadData);
+    this.form.querySelector('#saveData').addEventListener(
+      'click',
+      this.debounce(() => this.handleSubmit(), 500)
+    );
+  }
+
+  async initializeOauth() {
+    if (!this.oauth) {
+      this.oauth = new OAuth();
+      await this.oauth.initilaize();
+    }
+
+    return this.oauth;
   }
 
   /**
@@ -21,14 +46,30 @@ export default class JobForm {
     }
   }
 
+  formToJson() {
+    const formData = new FormData(this.form);
+    const data = {};
+    for (const [key, value] of formData.entries()) {
+      data[key] = value;
+    }
+
+    return data;
+  }
+
   /**
    * Handles what happens when we submit data to the Google Sheet.
-   *
-   * @param {object} formJson
    */
-  handleSubmit(formJson) {
+  async handleSubmit() {
+    console.log('handleSubmit');
+
+    const formJson = this.formToJson();
+    console.log(formJson);
+
+    const oauth = await this.initializeOauth();
+
     // submit the form data to Google Apps Script
-    submitFormData(formJson)
+    oauth
+      .appendValues(formJson)
       .then((response) => {
         if (response.ok) {
           appendResult('Data Submitted');
@@ -40,18 +81,30 @@ export default class JobForm {
       });
 
     // fetch the total jobs applied to from Google Apps Script
-    fetchTotalJobsApplied()
+    this.fetchTotalJobsApplied();
+
+    // fetch the total jobs applied to today from Google Apps Script
+    this.fetchTotalJobsAppliedToday();
+  }
+
+  async fetchTotalJobsApplied() {
+    const oauth = await this.initializeOauth();
+    oauth
+      .getSheetValues('H1')
       .then((totalJobs) => {
         logTotalJobs(totalJobs);
       })
       .catch((error) => {
         console.error('Error:', error);
       });
+  }
 
-    // fetch the total jobs applied to today from Google Apps Script
-    fetchTotalJobsAppliedToday()
-      .then((jobsToday) => {
-        logTotalJobsToday(jobsToday);
+  async fetchTotalJobsAppliedToday() {
+    const oauth = await this.initializeOauth();
+    oauth
+      .getSheetValues('J1')
+      .then((totalJobsToday) => {
+        logTotalJobsToday(totalJobsToday);
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -141,5 +194,25 @@ export default class JobForm {
         }, delay);
       }
     };
+  }
+
+  /**
+   * Handles the load data button click event.
+   * @param {object} tabs The tabs object from the chrome API.
+   */
+  loadData(tabs) {
+    // There is a bit of tricky scoping with this within this function.
+    // We are going to use another variable to reference this to avoid the scoping issue.
+    const jobForm = this;
+
+    chrome.tabs.sendMessage(
+      tabs[0].id,
+      { action: 'loadData' },
+      function (response) {
+        if (response) {
+          jobForm.updateForm(response);
+        }
+      }
+    );
   }
 }

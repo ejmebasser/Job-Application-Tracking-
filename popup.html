@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>LinkedUp</title>
   <link rel="stylesheet" href="popup.css">
-  <script type="text/javascript" src="src/utils/oauth.js"></script>
 </head>
 
 <body>
@@ -17,6 +17,7 @@
         <!-- Open Settings -->
       </button>
     </div>
+    <button id="authorizeButton">Authorize</button>
   </header>
   <hr />
   <div id="main">
@@ -32,6 +33,10 @@
         <li>
           <label for="sheetId">Sheet ID:</label>
           <input type="text" name="sheetId" value=""><br>
+        </li>
+        <li>
+          <label for="sheetName">Sheet Name (Tab at Bottom):</label>
+          <input type="text" name="sheetName" value=""><br>
         </li>
       </ul>
       <button id="saveSettings">Save Settings</button>
@@ -64,7 +69,9 @@
     </form>
     <div id="result"></div>
   </div>
-  <footer></footer>  <script src="dist/popup.bundle.js"></script> <!-- Ensure your script for the popup is here -->
+  <footer></footer>
+  <!-- Ensure your script for the popup is here -->
+  <script src="dist/popup.bundle.js"></script>
 </body>
 
 </html>

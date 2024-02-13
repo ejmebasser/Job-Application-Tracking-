@@ -32,6 +32,10 @@ header, #form, footer {
   display: none;
 }
 
+#settings select {
+  width: 100%;
+}
+
 #main {
   padding: 0 .5em;
 }
