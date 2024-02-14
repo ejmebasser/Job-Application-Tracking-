@@ -7,9 +7,9 @@ export default class JobForm {
 
     this.updateForm = this.updateForm.bind(this);
     this.loadData = this.loadData.bind(this);
-    this.formToJson = this.formToJson.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
 
-    this.utils = new Utils();
+    this.utils = new Utils(element, null);
   }
 
   async getOauth() {
@@ -36,21 +36,11 @@ export default class JobForm {
     }
   }
 
-  formToJson() {
-    const formData = new FormData(this.form);
-    const data = {};
-    for (const [key, value] of formData.entries()) {
-      data[key] = value;
-    }
-
-    return data;
-  }
-
   /**
    * Handles what happens when we submit data to the Google Sheet.
    */
   async handleSubmit() {
-    const formJson = this.formToJson();
+    const formJson = this.utils.formToObj(this.form);
 
     const saveButtonId = '#saveData';
     const saveButton = this.form.querySelector(saveButtonId);

@@ -18,7 +18,7 @@ let utils;
  *
  * I have tested this and the query only sends the message to scrape when the popup is opened.
  */
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', function () {
   settingsForm = document.querySelector('form#settings');
   jobForm = document.querySelector('form#jobForm');
   sheetElement = document.querySelector('#sheet');
@@ -38,17 +38,19 @@ document.addEventListener('DOMContentLoaded', async function () {
   const submitButton = settingsForm.querySelector('button#saveSettings');
   submitButton.addEventListener('click', settings.saveSettings);
 
-  await settings.populateSheetList();
-  chrome.storage.local.get(Object.keys(settings.fields), function (result) {
-    settings.populateSheetList();
-    settings.updateSettingsValues(result);
+  chrome.storage.local.get(
+    Object.keys(settings.fields),
+    async function (result) {
+      await settings.populateSheetList();
+      settings.updateSettingsValues(result);
 
-    if (!result.sheetId) {
-      utils.toggleCogFunction();
-    } else {
-      settings.createSheetLink(result.sheetId);
+      if (!result.sheetId) {
+        utils.toggleCogFunction();
+      } else {
+        settings.createSheetLink(result.sheetId);
+      }
     }
-  });
+  );
 
   jobForm.addEventListener('submit', (e) => {
     e.preventDefault();

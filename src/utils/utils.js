@@ -50,7 +50,7 @@ export default class Utils {
    *
    * @param {Function} func The function to throttle
    * @param {int} delay The delay in milliseconds
-   * @returns function with throlling
+   * @returns {func} function with throlling
    */
   throttle(func, delay) {
     let timeoutId;
@@ -66,5 +66,29 @@ export default class Utils {
         }, delay);
       }
     };
+  }
+
+  /**
+   * Convert the form and its values to an object.
+   *
+   * @param {HTMLFormElement} form The form to convert to an object.
+   * @returns {object} The form data as an object.
+   */
+  formToObj(form) {
+    const data = {};
+    for (const element of form.elements) {
+      if (!element.name) {
+        continue;
+      }
+
+      if (element.type === 'checkbox') {
+        data[element.name] = element.checked;
+        continue;
+      } else {
+        data[element.name] = element.value;
+      }
+    }
+
+    return data;
   }
 }

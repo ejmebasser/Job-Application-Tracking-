@@ -14,19 +14,11 @@ export default class Settings {
     this.settingsForm = settingsForm;
     this.sheetElement = sheetElement;
 
-    this.fields = {
-      autoHide: true,
-      autoSave: true,
-      sheetId: '',
-      consent: false,
-      sheetName: '',
-    };
-
     this.saveSettings = this.saveSettings.bind(this);
-    this.formToJson = this.formToJson.bind(this);
     this.updateSettingsValues = this.updateSettingsValues.bind(this);
 
     this.utils = new Utils(settingsForm, jobForm);
+    this.fields = this.utils.formToObj(settingsForm);
   }
 
   async getOauth() {
@@ -42,7 +34,7 @@ export default class Settings {
    * Function to handle the saveSheet button click event.
    */
   saveSettings() {
-    const values = this.formToJson();
+    const values = this.utils.formToObj(this.settingsForm);
 
     if (values.sheetId) {
       this.createSheetLink(values.sheetId);
@@ -69,24 +61,6 @@ export default class Settings {
     link.href = this.buildSheetURL(sheetId);
     link.target = '_blank';
     this.sheetElement.appendChild(link);
-  }
-
-  formToJson() {
-    const data = {};
-    for (const element of this.settingsForm.elements) {
-      if (!element.name) {
-        continue;
-      }
-
-      if (element.type === 'checkbox') {
-        data[element.name] = element.checked;
-        continue;
-      } else {
-        data[element.name] = element.value;
-      }
-    }
-
-    return data;
   }
 
   /**
