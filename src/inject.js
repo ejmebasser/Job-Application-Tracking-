@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
  *
  * @returns {string} The formated date and time.
  */
-function formatCurrentDateTime() {
+export function formatCurrentDateTime() {
   const now = new Date();
   const date = now.toLocaleDateString('en-US', {
     day: '2-digit',
@@ -35,7 +35,7 @@ function formatCurrentDateTime() {
  * @param {string} selector The CSS selector to find the URL.
  * @return {string} The URL of the current job.
  */
-function getURL(selector) {
+export function getURL(selector) {
   const link = document.querySelector(selector);
   return link ? link.href : window.location.href;
 }
@@ -46,7 +46,7 @@ function getURL(selector) {
  * @param {text} selector The CSS selector to find the element.
  * @returns {string} The text of the current element.
  */
-function getText(selector) {
+export function getText(selector) {
   return document.querySelector(selector)?.textContent.trim() || '';
 }
 
@@ -58,7 +58,7 @@ function getText(selector) {
  * @param {string} url The current URL of the job application page.
  * @returns {object} The parsed data from the URL.
  */
-function parseUrl(url) {
+export function parseUrl(url) {
   const urlMap = {
     'www.linkedin.com': {
       jobTitle: '.job-details-jobs-unified-top-card__job-title',
@@ -118,7 +118,7 @@ if (window.location.href.includes('www.linkedin.com/jobs')) {
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
  * This could probably be reused for behavior on other sites and with other application types.
  */
-function sendFormDataOnEasyApply() {
+export async function sendFormDataOnEasyApply() {
   const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';
   const applyDivClass = '.jobs-s-apply';
   const postApplyClass = 'artdeco-inline-feedback--success';
