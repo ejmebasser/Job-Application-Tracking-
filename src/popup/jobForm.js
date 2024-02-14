@@ -1,17 +1,30 @@
 import OAuth from '../utils/oauth.js';
 import Utils from '../utils/utils.js';
 
+/**
+ * Class to handle the job form in the popup.
+ */
 export default class JobForm {
-  constructor(element) {
-    this.form = element;
+  /**
+   * Constructor for JobForm class
+   *
+   * @param {HTMLElement} jobForm
+   */
+  constructor(jobForm) {
+    this.form = jobForm;
 
     this.updateForm = this.updateForm.bind(this);
     this.loadData = this.loadData.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
-    this.utils = new Utils(element, null);
+    this.utils = new Utils(jobForm, null);
   }
 
+  /**
+   * Function to ensure that the OAuth object is available and has been authorized.
+   *
+   * @returns {OAuth} The OAuth object.
+   */
   async getOauth() {
     if (!this.oauth) {
       const oauth = new OAuth();
@@ -46,7 +59,7 @@ export default class JobForm {
     const saveButton = this.form.querySelector(saveButtonId);
     saveButton.textContent = 'Submitting...';
 
-    const oauth = await this.getOauth();
+    const oauth = this.getOauth();
 
     // submit the form data to Google Apps Script
     oauth
@@ -73,10 +86,14 @@ export default class JobForm {
       });
   }
 
+  /**
+   * Function to fetch the total number of jobs applied to from Google API and append a message to the result div.
+   * It gets the value from the Google Sheet cell H1.
+   */
   async fetchTotalJobsApplied() {
-    const oauth = await this.getOauth();
+    const oauth = this.getOauth();
     oauth
-      .getSheetValues('H1')
+      .getCellValue('H1')
       .then((data) => {
         const totalJobs = data.values[0];
         this.utils.appendMessage(
@@ -89,10 +106,14 @@ export default class JobForm {
       });
   }
 
+  /**
+   * Function to fetch the total number of jobs applied to today from Google API and append a message to the result div.
+   * It gets the value from the Google Sheet cell J1.
+   */
   async fetchTotalJobsAppliedToday() {
-    const oauth = await this.getOauth();
+    const oauth = this.getOauth();
     oauth
-      .getSheetValues('J1')
+      .getCellValue('J1')
       .then((data) => {
         const totalJobsToday = data.values[0];
         this.utils.appendMessage(
@@ -107,6 +128,8 @@ export default class JobForm {
 
   /**
    * Handles the load data button click event.
+   * This will send the loadData action to the content script.
+   *
    * @param {object} tabs The tabs object from the chrome API.
    */
   loadData(tabs) {

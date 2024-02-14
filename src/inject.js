@@ -105,6 +105,7 @@ export function parseUrl(url) {
 
 /**
  * Below this is the beginning of the implementation to save the data to the Google Sheet after Easy Apply.
+ * This is specific to linkedin.com and will need to be refactored to be more general.
  *
  *******************************************************************************************************
  */

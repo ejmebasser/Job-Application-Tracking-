@@ -3,7 +3,11 @@ import JobForm from './jobForm.js';
 import OAuth from '../utils/oauth.js';
 import Utils from '../utils/utils.js';
 
-// declaring these as global variables so they can be more available to the rest of the code
+/**
+ * I am declaring these as global variables so they can be more available to the rest of the file.
+ * Currently, this isn't really used as everything is scoped within the event listener.
+ */
+
 let settingsForm;
 let jobForm;
 let sheetElement;

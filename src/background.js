@@ -43,6 +43,12 @@ chrome.runtime.onMessage.addListener(async function (
   }
 });
 
+/**
+ * This function initializes the OAuth object, for use in the background script.
+ * 
+ * @returns {OAuth} The OAuth object.
+ 
+ */
 async function initializeOauth() {
   let oauth = new OAuth();
   oauth = await oauth.initilaize();

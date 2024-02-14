@@ -1,4 +1,13 @@
+/**
+ * Utility functions for the application.
+ */
 export default class Utils {
+  /**
+   * The constructor for the Utils class.
+   *
+   * @param {HTMLElement} settingsForm
+   * @param {HTMLElement} applicationForm
+   */
   constructor(settingsForm, applicationForm) {
     this.settingsForm = settingsForm;
     this.applicationForm = applicationForm;
@@ -36,7 +45,9 @@ export default class Utils {
   }
 
   /**
-   * Removes the submit button from the popup.
+   * Removes a button from the popup.
+   *
+   * @param {string} buttonId The id of the button to remove.
    */
   removeButton(buttonId) {
     var submitButton = document.querySelector(buttonId);

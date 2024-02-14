@@ -1,6 +1,9 @@
 import OAuth from '../utils/oauth';
 import Utils from '../utils/utils';
 
+/**
+ * Class to handle the settings form.
+ */
 export default class Settings {
   /**
    * Constructor for Settings class
@@ -65,6 +68,8 @@ export default class Settings {
 
   /**
    * Update the values of the settings fields.
+   *
+   * @param {object} settings The settings object.
    */
   updateSettingsValues(settings) {
     this.fields = settings;
@@ -95,6 +100,8 @@ export default class Settings {
 
   /**
    * Store the values of the settings fields in Chrome's local storage.
+   *
+   * @param {object} settings The settings object.
    */
   storeSettingsValues(settings) {
     this.fields = settings;

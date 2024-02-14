@@ -1,18 +1,35 @@
 import axios from 'axios';
 
+/**
+ * OAuth class to handle Google OAuth2.0
+ */
 export default class OAuth {
+  /**
+   * Constructor for OAuth class
+   */
   constructor() {
     this.getOAuth();
 
     this.searchFile = this.getSheets.bind(this);
   }
 
+  /**
+   * We cannot use async/await in the constructor, so we use this function to ensure that the OAuth object is available and has been authorized.
+   * We also set the authToken property.
+   *
+   * @returns {OAuth} The OAuth object.
+   */
   async getOAuth() {
-    this.authToken = await this.getAuthToken();
+    this.authToken = this.getAuthToken();
 
     return this;
   }
 
+  /**
+   * Function to get the authToken from chrome.identity.
+   *
+   * @returns {string} The OAuth token.
+   */
   getAuthToken() {
     return new Promise((resolve, reject) => {
       chrome.identity.getAuthToken({ interactive: true }, function (token) {
@@ -26,6 +43,11 @@ export default class OAuth {
     });
   }
 
+  /**
+   * Get the list of Google Sheets, ordered by descending modified time.
+   *
+   * @returns {array} The list of Google Sheets as an array of objects with name and id properties.
+   */
   getSheets() {
     const url =
       'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"&orderBy=modifiedTime desc';
@@ -50,6 +72,12 @@ export default class OAuth {
       });
   }
 
+  /**
+   * Gets the sheet names from a Google Sheet. The sheet names are the labelled tabs at the bottom of a Google Sheet.
+   *
+   * @param {string} spreadsheetId The id of the Google Sheet.
+   * @returns {array} The list of sheet names as an array of strings.
+   */
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
 
@@ -72,7 +100,13 @@ export default class OAuth {
       });
   }
 
-  async getSheetValues(cell) {
+  /**
+   * Get a value from a particular cell in a Google Sheet.
+   *
+   * @param {string} cell The cell to get the value from. e.g. A1
+   * @returns {object} The value of the cell.
+   */
+  async getCellValue(cell) {
     let { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
@@ -92,7 +126,14 @@ export default class OAuth {
       });
   }
 
-  async appendValues(jsonData) {
+  /**
+   * Append a row of values to a Google Sheet. The order of the rows is specified in the resource object, with the values array.
+   * There may be a better way to map this data to the Google Sheet.
+   *
+   * @param {object} data The data to append to the Google Sheet.
+   * @returns {object} The response from the Google Sheets API.
+   */
+  async appendValues(data) {
     let { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
@@ -106,11 +147,11 @@ export default class OAuth {
       majorDimension: 'ROWS',
       values: [
         [
-          jsonData.jobTitle,
-          jsonData.company,
-          jsonData.source,
-          jsonData.applicationDateTime,
-          jsonData.url,
+          data.jobTitle,
+          data.company,
+          data.source,
+          data.applicationDateTime,
+          data.url,
         ],
       ],
     };
