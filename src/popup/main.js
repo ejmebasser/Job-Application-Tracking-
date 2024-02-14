@@ -32,10 +32,6 @@ document.addEventListener('DOMContentLoaded', function () {
   oauth = new OAuth();
   utils = new Utils(settingsForm, jobForm);
 
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
-    job.loadData(tabs)
-  );
-
   settingsForm.addEventListener('submit', (e) => {
     e.preventDefault();
   });
@@ -53,13 +49,24 @@ document.addEventListener('DOMContentLoaded', function () {
       } else {
         settings.createSheetLink(result.sheetId);
       }
+
+      console.log(settings.fields.autoLoad);
+      if (settings.fields.autoLoad) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
+          job.loadData(tabs)
+        );
+      }
     }
   );
 
   jobForm.addEventListener('submit', (e) => {
     e.preventDefault();
   });
-  jobForm.querySelector('#loadData').addEventListener('click', job.loadData);
+  jobForm.querySelector('#loadData').addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
+      job.loadData(tabs)
+    );
+  });
   jobForm.querySelector('#saveData').addEventListener(
     'click',
     utils.throttle(() => job.handleSubmit(), 500)

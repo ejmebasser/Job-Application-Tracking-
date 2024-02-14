@@ -20,7 +20,7 @@ export default class OAuth {
    * @returns {OAuth} The OAuth object.
    */
   async getOAuth() {
-    this.authToken = this.getAuthToken();
+    this.authToken = await this.getAuthToken();
 
     return this;
   }
