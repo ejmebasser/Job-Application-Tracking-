@@ -1,7 +1,7 @@
-export default class OAuth {
-  constructor(settingsForm) {
-    this.settingsForm = settingsForm;
+import axios from 'axios';
 
+export default class OAuth {
+  constructor() {
     this.getOAuth();
 
     this.searchFile = this.getSheets.bind(this);
@@ -30,50 +30,46 @@ export default class OAuth {
     const url =
       'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"';
 
-    const files = [];
-    return new Promise((resolve, reject) => {
-      fetch(url, {
+    return axios
+      .get(url, {
         headers: {
           Authorization: 'Bearer ' + this.authToken,
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
-          data.files.forEach((file) => {
-            files.push({
-              name: file.name,
-              id: file.id,
-            });
-          });
+      .then((response) => {
+        const files = response.data.files.map((file) => ({
+          name: file.name,
+          id: file.id,
+        }));
 
-          resolve(files);
-        })
-        .catch((error) => {
-          console.error(error);
-          reject(error);
-        });
-    });
+        return files;
+      })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
   }
 
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
 
-    return new Promise((resolve, reject) => {
-      fetch(url, {
+    return axios
+      .get(url, {
         headers: {
           Authorization: 'Bearer ' + this.authToken,
         },
       })
-        .then((response) => response.json())
-        .then((data) => {
-          const tabs = data.sheets.map((sheet) => sheet.properties.title);
-          resolve(tabs);
-        })
-        .catch((error) => {
-          console.error(error);
-          reject(error);
-        });
-    });
+      .then((response) => {
+        const tabs = response.data.sheets.map(
+          (sheet) => sheet.properties.title
+        );
+
+        return tabs;
+      })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
   }
 
   async getSheetValues(cell) {
@@ -85,21 +81,15 @@ export default class OAuth {
     sheetName += '!' + cell;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
 
-    return new Promise((resolve, reject) => {
-      fetch(url, {
-        headers: {
-          Authorization: 'Bearer ' + this.authToken,
-        },
+    return axios
+      .get(url, { headers: { Authorization: 'Bearer ' + this.authToken } })
+      .then((response) => {
+        return response.data;
       })
-        .then((response) => response.json())
-        .then((data) => {
-          resolve(data);
-        })
-        .catch((error) => {
-          console.error(error);
-          reject(error);
-        });
-    });
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
   }
 
   async appendValues(jsonData) {
@@ -124,23 +114,20 @@ export default class OAuth {
         ],
       ],
     };
-    console.log(resource);
-    console.log(this.authToken);
 
-    return new Promise((resolve, reject) => {
-      fetch(url, {
-        method: 'POST',
+    return axios
+      .post(url, resource, {
         headers: {
           Authorization: 'Bearer ' + this.authToken,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(resource),
       })
-        .then((response) => resolve(response))
-        .catch((error) => {
-          console.error(error);
-          reject(error);
-        });
-    });
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        console.error(error);
+        throw error;
+      });
   }
 }

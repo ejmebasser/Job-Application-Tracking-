@@ -1,6 +1,7 @@
 import Settings from './settings.js';
 import JobForm from './jobForm.js';
 import OAuth from '../utils/oauth.js';
+import Utils from '../utils/utils.js';
 
 // declaring these as global variables so they can be more available to the rest of the code
 let settingsForm;
@@ -10,26 +11,61 @@ let sheetElement;
 let settings;
 let job;
 let oauth;
+let utils;
 
 /**
  * Handling attaching mechanics after the DOM has been loaded.
  *
  * I have tested this and the query only sends the message to scrape when the popup is opened.
  */
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
   settingsForm = document.querySelector('form#settings');
   jobForm = document.querySelector('form#jobForm');
   sheetElement = document.querySelector('#sheet');
 
   settings = new Settings(jobForm, settingsForm, sheetElement);
   job = new JobForm(jobForm);
-  oauth = new OAuth(settingsForm);
+  oauth = new OAuth();
+  utils = new Utils(settingsForm, jobForm);
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
     job.loadData(tabs)
   );
 
+  settingsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+  });
+  const submitButton = settingsForm.querySelector('button#saveSettings');
+  submitButton.addEventListener('click', settings.saveSheet);
+
+  await settings.populateSheetList();
+  chrome.storage.local.get(
+    ['sheetId', 'sheetName', 'consent'],
+    function (result) {
+      settings.updateSettingValues(
+        result.sheetId,
+        result.consent,
+        result.sheetName
+      );
+
+      if (!result.sheetId) {
+        settings.toggleCogFunction();
+      } else {
+        settings.createSheetLink(result.sheetId);
+      }
+    }
+  );
+
+  jobForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+  });
+  jobForm.querySelector('#loadData').addEventListener('click', job.loadData);
+  jobForm.querySelector('#saveData').addEventListener(
+    'click',
+    utils.throttle(() => job.handleSubmit(), 500)
+  );
+
   document
     .querySelector('#settingsButton')
-    .addEventListener('click', settings.toggleCogFunction);
+    .addEventListener('click', utils.toggleCogFunction);
 });

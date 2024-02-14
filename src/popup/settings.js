@@ -1,4 +1,5 @@
 import OAuth from '../utils/oauth';
+import Utils from '../utils/utils';
 
 export default class Settings {
   /**
@@ -13,37 +14,9 @@ export default class Settings {
     this.settingsForm = settingsForm;
     this.sheetElement = sheetElement;
 
-    this.toggleCogFunction = this.toggleCogFunction.bind(this);
     this.saveSheet = this.saveSheet.bind(this);
 
-    this.settingsForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-    });
-    this.submitButton = settingsForm.querySelector('button#saveSettings');
-    this.submitButton.addEventListener('click', this.saveSheet);
-
-    this.oauth;
-    this.getOauth();
-
-    this.populateSheetList();
-
-    const settings = this;
-    chrome.storage.local.get(
-      ['sheetId', 'sheetName', 'consent'],
-      function (result) {
-        settings.updateSettingValues(
-          result.sheetId,
-          result.consent,
-          result.sheetName
-        );
-
-        if (!result.sheetId) {
-          settings.toggleCogFunction();
-        } else {
-          settings.createSheetLink(result.sheetId);
-        }
-      }
-    );
+    this.utils = new Utils();
   }
 
   async getOauth() {
@@ -80,7 +53,7 @@ export default class Settings {
     }
     this.storeSettingsValues(sheetId, consent, sheetName);
 
-    this.toggleCogFunction();
+    this.utils.toggleCogFunction();
   }
 
   /**
@@ -123,22 +96,6 @@ export default class Settings {
     sheetIdInput.value = sheetId;
     consentInput.checked = consent;
     sheetNameInput.value = sheetName;
-  }
-
-  /**
-   * Toggle display of Settings and Job Application form.
-   */
-  toggleCogFunction() {
-    const display = 'block';
-    const hide = 'none';
-    let settingsDisplayed = false;
-
-    if (this.settingsForm.style.display === 'block') {
-      settingsDisplayed = true;
-    }
-
-    this.settingsForm.style.display = settingsDisplayed ? hide : display;
-    this.applicationForm.style.display = settingsDisplayed ? display : hide;
   }
 
   /**

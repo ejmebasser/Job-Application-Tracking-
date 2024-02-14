@@ -116,6 +116,7 @@ if (window.location.href.includes('www.linkedin.com/jobs')) {
 
 /**
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
+ * This could probably be reused for behavior on other sites and with other application types.
  */
 function sendFormDataOnEasyApply() {
   const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';

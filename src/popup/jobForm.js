@@ -1,4 +1,5 @@
 import OAuth from '../utils/oauth.js';
+import Utils from '../utils/utils.js';
 
 export default class JobForm {
   constructor(element) {
@@ -8,17 +9,7 @@ export default class JobForm {
     this.loadData = this.loadData.bind(this);
     this.formToJson = this.formToJson.bind(this);
 
-    this.form.addEventListener('submit', (e) => {
-      e.preventDefault();
-    });
-
-    this.form
-      .querySelector('#loadData')
-      .addEventListener('click', this.loadData);
-    this.form.querySelector('#saveData').addEventListener(
-      'click',
-      this.debounce(() => this.handleSubmit(), 500)
-    );
+    this.utils = new Utils();
   }
 
   async getOauth() {
@@ -40,7 +31,6 @@ export default class JobForm {
       try {
         this.form.querySelector(`input[name="${id}"]`).value = formData[id];
       } catch (error) {
-        console.log('id not found', id);
         console.error(error);
       }
     }
@@ -62,19 +52,22 @@ export default class JobForm {
   async handleSubmit() {
     const formJson = this.formToJson();
 
+    const saveButtonId = '#saveData';
+    const saveButton = this.form.querySelector(saveButtonId);
+    saveButton.textContent = 'Submitting...';
+
     const oauth = await this.getOauth();
 
     // submit the form data to Google Apps Script
     oauth
       .appendValues(formJson)
       .then((response) => {
-        console.log(response);
-        if (response.ok) {
-          this.appendResult('Data Submitted');
-          removeSubmitButton();
+        if (response.status >= 200 && response.status < 300) {
+          this.utils.appendMessage('#result', 'Data Submitted');
+          this.utils.removeButton(saveButtonId);
         } else {
-          console.log(response);
-          this.appendResult('Error submitting data');
+          console.error('Error:', response);
+          this.utils.appendMessage('#result', 'Error submitting data');
         }
       })
       .catch((error) => {
@@ -94,7 +87,10 @@ export default class JobForm {
       .getSheetValues('H1')
       .then((data) => {
         const totalJobs = data.values[0];
-        this.appendResult(`${totalJobs} jobs applied to in total`);
+        this.utils.appendMessage(
+          '#result',
+          `${totalJobs} jobs applied to in total`
+        );
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -107,57 +103,14 @@ export default class JobForm {
       .getSheetValues('J1')
       .then((data) => {
         const totalJobsToday = data.values[0];
-        this.appendResult(`${totalJobsToday} jobs applied to in total today`);
+        this.utils.appendMessage(
+          '#result',
+          `${totalJobsToday} jobs applied to in total today`
+        );
       })
       .catch((error) => {
         console.error('Error:', error);
       });
-  }
-
-  /**
-   * Removes the submit button from the popup.
-   */
-  removeSubmitButton() {
-    var submitButton = document.getElementById('submitButton');
-    if (submitButton) {
-      submitButton.remove();
-    }
-  }
-
-  /**
-   * Append a message to the result div.
-   *
-   * @param {string} message The message to append.
-   */
-  appendResult(message) {
-    const resultDiv = document.getElementById('result');
-    const messageDiv = document.createElement('p');
-    messageDiv.innerHTML = message;
-    resultDiv.appendChild(messageDiv);
-  }
-
-  /**
-   * Debounce function to limit the rate of function calls.
-   *
-   * @param {Function} func The function to debounce
-   * @param {int} delay The delay in milliseconds
-   * @returns function with debounce
-   */
-  debounce(func, delay) {
-    let timeoutId;
-    let called = false; // Flag to track if the function has been called already
-    return function () {
-      const context = this;
-      const args = arguments;
-      if (!called) {
-        clearTimeout(timeoutId);
-        called = true;
-        timeoutId = setTimeout(() => {
-          func.apply(context, args);
-          called = false; // Reset the flag after the function is called
-        }, delay);
-      }
-    };
   }
 
   /**

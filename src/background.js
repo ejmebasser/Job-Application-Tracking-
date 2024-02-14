@@ -9,7 +9,6 @@ function injectScript(tabId) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     files: ['dist/inject.bundle.js'],
-    // files: ['inject.js'],
   });
 }
 
@@ -62,7 +61,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 async function initializeOauth() {
-  let oauth = new OAuth(this.form);
+  let oauth = new OAuth();
   oauth = await oauth.initilaize();
   return oauth;
 }
