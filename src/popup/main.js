@@ -36,25 +36,19 @@ document.addEventListener('DOMContentLoaded', async function () {
     e.preventDefault();
   });
   const submitButton = settingsForm.querySelector('button#saveSettings');
-  submitButton.addEventListener('click', settings.saveSheet);
+  submitButton.addEventListener('click', settings.saveSettings);
 
   await settings.populateSheetList();
-  chrome.storage.local.get(
-    ['sheetId', 'sheetName', 'consent'],
-    function (result) {
-      settings.updateSettingValues(
-        result.sheetId,
-        result.consent,
-        result.sheetName
-      );
+  chrome.storage.local.get(Object.keys(settings.fields), function (result) {
+    settings.populateSheetList();
+    settings.updateSettingsValues(result);
 
-      if (!result.sheetId) {
-        settings.toggleCogFunction();
-      } else {
-        settings.createSheetLink(result.sheetId);
-      }
+    if (!result.sheetId) {
+      utils.toggleCogFunction();
+    } else {
+      settings.createSheetLink(result.sheetId);
     }
-  );
+  });
 
   jobForm.addEventListener('submit', (e) => {
     e.preventDefault();

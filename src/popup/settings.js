@@ -14,9 +14,19 @@ export default class Settings {
     this.settingsForm = settingsForm;
     this.sheetElement = sheetElement;
 
-    this.saveSheet = this.saveSheet.bind(this);
+    this.fields = {
+      autoHide: true,
+      autoSave: true,
+      sheetId: '',
+      consent: false,
+      sheetName: '',
+    };
 
-    this.utils = new Utils();
+    this.saveSettings = this.saveSettings.bind(this);
+    this.formToJson = this.formToJson.bind(this);
+    this.updateSettingsValues = this.updateSettingsValues.bind(this);
+
+    this.utils = new Utils(settingsForm, jobForm);
   }
 
   async getOauth() {
@@ -31,27 +41,13 @@ export default class Settings {
   /**
    * Function to handle the saveSheet button click event.
    */
-  saveSheet() {
-    const sheetId = this.settingsForm.querySelector(
-      'input[name="sheetId"], select[name="sheetId"]'
-    ).value;
-    const consent = this.settingsForm.querySelector(
-      'input[type="checkbox"]'
-    ).checked;
-    const sheetName = this.settingsForm.querySelector(
-      'input[name="sheetName"], select[name="sheetName"]'
-    ).value;
+  saveSettings() {
+    const values = this.formToJson();
 
-    if (sheetId) {
-      this.createSheetLink(sheetId);
-      chrome.runtime.sendMessage({
-        action: 'loadSheet',
-        sheetId: sheetId,
-        consent: consent,
-        sheetName: sheetName,
-      });
+    if (values.sheetId) {
+      this.createSheetLink(values.sheetId);
     }
-    this.storeSettingsValues(sheetId, consent, sheetName);
+    this.storeSettingsValues(values);
 
     this.utils.toggleCogFunction();
   }
@@ -75,37 +71,63 @@ export default class Settings {
     this.sheetElement.appendChild(link);
   }
 
+  formToJson() {
+    const data = {};
+    for (const element of this.settingsForm.elements) {
+      if (!element.name) {
+        continue;
+      }
+
+      if (element.type === 'checkbox') {
+        data[element.name] = element.checked;
+        continue;
+      } else {
+        data[element.name] = element.value;
+      }
+    }
+
+    return data;
+  }
+
   /**
    * Update the values of the settings fields.
    */
-  updateSettingValues(sheetId = '', consent = true, sheetName = '') {
-    const sheetIdInput = this.settingsForm.querySelector(
-      'input[name="sheetId"], select[name="sheetId"]'
-    );
-    const consentInput = this.settingsForm.querySelector(
-      'input[type="checkbox"]'
-    );
-    const sheetNameInput = this.settingsForm.querySelector(
-      'input[name="sheetName"], select[name="sheetName"]'
-    );
+  updateSettingsValues(settings) {
+    this.fields = settings;
+    for (let [key, value] of Object.entries(settings)) {
+      let inputField;
+      switch (typeof value) {
+        case 'boolean':
+          value = value === null ? false : value;
+          inputField = this.settingsForm.querySelector(`input[name="${key}"]`);
+          if (inputField) {
+            inputField.checked = value;
+          }
+          break;
+        default:
+          value = value === null ? '' : value;
+          inputField = this.settingsForm.querySelector(
+            `input[name="${key}"], select[name="${key}"]`
+          );
+          if (inputField) {
+            inputField.value = value;
+          }
+          break;
+      }
+    }
 
-    this.sheetId = sheetId;
-    this.consent = consent;
-    this.sheetName = sheetName;
-
-    sheetIdInput.value = sheetId;
-    consentInput.checked = consent;
-    sheetNameInput.value = sheetName;
+    return this.fields;
   }
 
   /**
    * Store the values of the settings fields in Chrome's local storage.
    */
-  storeSettingsValues(sheetId, consent, sheetName) {
-    chrome.storage.local.set({
-      sheetId: sheetId,
-      consent: consent,
-      sheetName: sheetName,
+  storeSettingsValues(settings) {
+    this.fields = settings;
+    chrome.storage.local.set(settings, (results) => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+      }
     });
   }
 
@@ -136,7 +158,9 @@ export default class Settings {
       sheetSelector.appendChild(option);
     });
 
-    const defaultSheet = this.sheetId ? this.sheetId : files[0].id;
+    const defaultSheet = this.fields.sheetId
+      ? this.fields.sheetId
+      : files[0].id;
     this.populateSheetNameList(defaultSheet);
     sheetSelector.value = defaultSheet;
 
@@ -171,12 +195,10 @@ export default class Settings {
       option.text = sheet;
       sheetSelector.appendChild(option);
     });
-    sheetSelector.value = this.sheetName;
+    sheetSelector.value = this.fields.sheetName
+      ? this.fields.sheetName
+      : sheetNames[0];
 
-    sheetSelector.addEventListener('change', (event) => {
-      this.settingsForm.querySelector('input[name="sheetName"]').value =
-        event.target.value;
-    });
     sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
   }
 }

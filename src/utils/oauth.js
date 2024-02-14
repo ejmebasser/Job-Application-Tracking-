@@ -28,7 +28,7 @@ export default class OAuth {
 
   getSheets() {
     const url =
-      'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"';
+      'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"&orderBy=modifiedTime desc';
 
     return axios
       .get(url, {

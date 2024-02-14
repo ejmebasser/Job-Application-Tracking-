@@ -65,6 +65,12 @@ export default class JobForm {
         if (response.status >= 200 && response.status < 300) {
           this.utils.appendMessage('#result', 'Data Submitted');
           this.utils.removeButton(saveButtonId);
+
+          // fetch the total jobs applied to from Google Apps Script
+          this.fetchTotalJobsApplied();
+
+          // fetch the total jobs applied to today from Google Apps Script
+          this.fetchTotalJobsAppliedToday();
         } else {
           console.error('Error:', response);
           this.utils.appendMessage('#result', 'Error submitting data');
@@ -72,13 +78,9 @@ export default class JobForm {
       })
       .catch((error) => {
         console.error('Error:', error);
+        this.utils.appendMessage('#result', 'Error submitting data');
+        saveButton.textContent = 'Save Data';
       });
-
-    // fetch the total jobs applied to from Google Apps Script
-    this.fetchTotalJobsApplied();
-
-    // fetch the total jobs applied to today from Google Apps Script
-    this.fetchTotalJobsAppliedToday();
   }
 
   async fetchTotalJobsApplied() {

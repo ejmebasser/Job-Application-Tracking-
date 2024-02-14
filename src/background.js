@@ -1,4 +1,5 @@
 import OAuth from './utils/oauth';
+import Settings from './popup/settings';
 
 chrome.action.onClicked.addListener((tab) => {
   chrome.tabs.openPopup();
@@ -35,29 +36,11 @@ chrome.runtime.onMessage.addListener(async function (
   sender,
   sendResponse
 ) {
-  if (message.action === 'loadSheet') {
-    chrome.storage.local.set({ sheetId: message.sheetId });
-  }
-
   if (message.action === 'saveJob') {
     const oauth = await initializeOauth();
 
     sendResponse(oauth.appendValues(message.formData));
   }
-});
-
-let sheetURL;
-let sheetName;
-let consent;
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(
-    ['sheetId', 'sheetName', 'consent'],
-    function (result) {
-      sheetURL = result.sheetId;
-      consent = result.consent;
-      sheetName = result.sheetName;
-    }
-  );
 });
 
 async function initializeOauth() {
