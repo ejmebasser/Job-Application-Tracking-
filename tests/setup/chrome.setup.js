@@ -10,7 +10,7 @@ global.chrome = {
   },
   runtime: {
     lastError: null,
-    onMessage: {
+    onMessageExternal: {
       addListener: jest.fn((listener) => {
         messageListener = listener;
       }),

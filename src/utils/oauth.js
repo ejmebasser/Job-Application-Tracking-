@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 /**
  * OAuth class to handle Google OAuth2.0
  */
@@ -16,6 +14,9 @@ export default class OAuth {
   /**
    * We cannot use async/await in the constructor, so we use this function to ensure that the OAuth object is available and has been authorized.
    * We also set the authToken property.
+   *
+   * I really don't like this. It seems like a poor singleton attempt.
+   * There is probably a better way to handle this.
    *
    * @returns {OAuth} The OAuth object.
    */
@@ -52,14 +53,14 @@ export default class OAuth {
     const url =
       'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"&orderBy=modifiedTime desc';
 
-    return axios
-      .get(url, {
-        headers: {
-          Authorization: 'Bearer ' + this.authToken,
-        },
-      })
-      .then((response) => {
-        const files = response.data.files.map((file) => ({
+    return fetch(url, {
+      headers: {
+        Authorization: 'Bearer ' + this.authToken,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const files = data.files.map((file) => ({
           name: file.name,
           id: file.id,
         }));
@@ -81,16 +82,16 @@ export default class OAuth {
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
 
-    return axios
-      .get(url, {
-        headers: {
-          Authorization: 'Bearer ' + this.authToken,
-        },
-      })
+    return fetch(url, {
+      headers: {
+        Authorization: 'Bearer ' + this.authToken,
+      },
+    })
       .then((response) => {
-        const tabs = response.data.sheets.map(
-          (sheet) => sheet.properties.title
-        );
+        return response.json();
+      })
+      .then((data) => {
+        const tabs = data.sheets.map((sheet) => sheet.properties.title);
 
         return tabs;
       })
@@ -115,10 +116,11 @@ export default class OAuth {
     sheetName += '!' + cell;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
 
-    return axios
-      .get(url, { headers: { Authorization: 'Bearer ' + this.authToken } })
+    return fetch(url, {
+      headers: { Authorization: 'Bearer ' + this.authToken },
+    })
       .then((response) => {
-        return response.data;
+        return response.json();
       })
       .catch((error) => {
         console.error(error);
@@ -156,14 +158,16 @@ export default class OAuth {
       ],
     };
 
-    return axios
-      .post(url, resource, {
-        headers: {
-          Authorization: 'Bearer ' + this.authToken,
-          'Content-Type': 'application/json',
-        },
-      })
+    return fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + this.authToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(resource),
+    })
       .then((response) => {
+        console.log(response);
         return response;
       })
       .catch((error) => {

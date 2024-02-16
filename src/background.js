@@ -1,5 +1,4 @@
 import OAuth from './utils/oauth';
-import Settings from './popup/settings';
 
 chrome.action.onClicked.addListener((tab) => {
   chrome.tabs.openPopup();
@@ -17,18 +16,24 @@ function injectScript(tabId) {
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // check for a URL in the changeInfo parameter (url is only added when it is changed)
   if (changeInfo.url) {
+    // inject the script to the tab
     injectScript(tabId);
   }
 
-  // check if chrome has a runtime error as the last error,
-  // if it does, then inject the script
-  if (chrome.runtime.lastError) {
-    injectScript(tabId);
+  if (changeInfo.status === 'complete') {
+    chrome.storage.local.get(['autoSave'], (result) => {
+      if (result.autoSave) {
+        chrome.tabs.sendMessage(tabId, {
+          action: 'autoSave',
+          autoSave: result.autoSave,
+        });
+      }
+    });
   }
 });
 
 /**
- *  Adds a listener for the 'loadSheet' action.
+ *  Adds a listener for the 'saveJob' action.
  *  This will save the sheetURL to the chrome storage.
  */
 chrome.runtime.onMessage.addListener(async function (
@@ -36,11 +41,18 @@ chrome.runtime.onMessage.addListener(async function (
   sender,
   sendResponse
 ) {
+  console.log('listener started');
   if (message.action === 'saveJob') {
     const oauth = await initializeOauth();
+    console.log('saving job');
+    console.log(oauth);
 
-    sendResponse(oauth.appendValues(message.formData));
+    const response = await oauth.appendValues(message.formData);
+    sendResponse(response);
   }
+
+  // if the listener is an async function, it must return true
+  return true;
 });
 
 /**
@@ -51,6 +63,7 @@ chrome.runtime.onMessage.addListener(async function (
  */
 async function initializeOauth() {
   let oauth = new OAuth();
-  oauth = await oauth.initilaize();
+  oauth = await oauth.getOAuth();
+
   return oauth;
 }

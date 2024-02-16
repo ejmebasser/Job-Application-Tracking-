@@ -43,6 +43,7 @@ export default class Settings {
       this.createSheetLink(values.sheetId);
     }
     this.storeSettingsValues(values);
+    this.sendAutoSaveMessage(values.autoSave);
 
     this.utils.toggleCogFunction();
   }
@@ -181,5 +182,10 @@ export default class Settings {
       : sheetNames[0];
 
     sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
+  }
+
+  sendAutoSaveMessage(autoSave) {
+    console.log('Auto saving set to: ' + autoSave);
+    this.utils.sendMessage({ action: 'autoSave', autoSave: autoSave });
   }
 }

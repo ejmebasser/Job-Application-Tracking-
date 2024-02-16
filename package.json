@@ -2,7 +2,6 @@
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
     "@babel/preset-env": "^7.23.9",
-    "axios": "^1.6.7",
     "babel-jest": "^29.7.0",
     "google-auth-library": "^9.6.3",
     "googleapis": "^133.0.0",

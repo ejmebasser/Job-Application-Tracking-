@@ -38,6 +38,17 @@ document.addEventListener('DOMContentLoaded', function () {
   const submitButton = settingsForm.querySelector('button#saveSettings');
   submitButton.addEventListener('click', settings.saveSettings);
 
+  let ready = false;
+  chrome.runtime.onMessage.addListener(function (
+    request,
+    sender,
+    sendResponse
+  ) {
+    if (request.ready && !ready) {
+      ready = true;
+    }
+  });
+
   chrome.storage.local.get(
     Object.keys(settings.fields),
     async function (result) {
@@ -50,11 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
         settings.createSheetLink(result.sheetId);
       }
 
-      console.log(settings.fields.autoLoad);
       if (settings.fields.autoLoad) {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) =>
           job.loadData(tabs)
         );
+      }
+      if (settings.fields.autoSave) {
+        chrome.runtime.sendMessage({ autoSave: true });
       }
     }
   );

@@ -66,6 +66,7 @@ export default class Utils {
   throttle(func, delay) {
     let timeoutId;
     let called = false; // Flag to track if the function has been called already
+    console.log('throttle: ', func, called);
     return function () {
       const context = this;
       const args = arguments;
@@ -101,5 +102,11 @@ export default class Utils {
     }
 
     return data;
+  }
+
+  sendMessage(message, callback) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, message, callback);
+    });
   }
 }

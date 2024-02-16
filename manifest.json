@@ -19,6 +19,9 @@
     "activeTab",
     "storage",
     "identity",
+    "scripting"
+  ],
+  "host_permissions": [
     "https://www.linkedin.com/jobs/*",
     "https://www.indeed.com/*",
     "https://www.glassdoor.com/*"

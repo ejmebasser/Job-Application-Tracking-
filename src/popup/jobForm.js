@@ -59,7 +59,8 @@ export default class JobForm {
     const saveButton = this.form.querySelector(saveButtonId);
     saveButton.textContent = 'Submitting...';
 
-    const oauth = this.getOauth();
+    const oauth = await this.getOauth();
+    console.log(oauth);
 
     // submit the form data to Google Apps Script
     oauth
@@ -91,7 +92,7 @@ export default class JobForm {
    * It gets the value from the Google Sheet cell H1.
    */
   async fetchTotalJobsApplied() {
-    const oauth = this.getOauth();
+    const oauth = await this.getOauth();
     oauth
       .getCellValue('H1')
       .then((data) => {
@@ -111,7 +112,7 @@ export default class JobForm {
    * It gets the value from the Google Sheet cell J1.
    */
   async fetchTotalJobsAppliedToday() {
-    const oauth = this.getOauth();
+    const oauth = await this.getOauth();
     oauth
       .getCellValue('J1')
       .then((data) => {
@@ -137,14 +138,10 @@ export default class JobForm {
     // We are going to use another variable to reference this to avoid the scoping issue.
     const jobForm = this;
 
-    chrome.tabs.sendMessage(
-      tabs[0].id,
-      { action: 'loadData' },
-      function (response) {
-        if (response) {
-          jobForm.updateForm(response);
-        }
+    this.utils.sendMessage({ action: 'loadData' }, function (response) {
+      if (response) {
+        jobForm.updateForm(response);
       }
-    );
+    });
   }
 }

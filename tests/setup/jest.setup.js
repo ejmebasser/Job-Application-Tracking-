@@ -1,6 +1,9 @@
 // Mock axios
-global.mockAxios = function (result) {
-  const mockAxios = jest.genMockFromModule('axios');
-  mockAxios.post.mockImplementation(() => Promise.resolve({ data: result }));
-  global.axios = mockAxios;
+global.mockFetch = function (result) {
+  const mockFetch = jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve({ ok: true, json: () => Promise.resolve(result) })
+    );
+  global.fetch = mockFetch;
 };

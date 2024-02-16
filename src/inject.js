@@ -1,18 +1,3 @@
-// Add a listener to listen for the 'loadData' action.
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'loadData') {
-    const pageUrl = window.location.href;
-
-    const pageMap = parseUrl(pageUrl);
-    // Store data in Chrome's local storage and send response
-    chrome.storage.local.set(pageMap, function () {
-      sendResponse(pageMap);
-    });
-
-    return true; // Indicates that the response is asynchronous
-  }
-});
-
 /**
  * Formats the current time as "MM/DD/YYYY HH:MM:SS".
  *
@@ -110,9 +95,32 @@ export function parseUrl(url) {
  *******************************************************************************************************
  */
 
-if (window.location.href.includes('www.linkedin.com/jobs')) {
+let autoSave = false;
+let pageMap;
+
+// Add a listener to listen for the 'loadData' action.
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === 'loadData') {
+    if (!pageMap) {
+      const pageUrl = window.location.href;
+
+      pageMap = parseUrl(pageUrl);
+    }
+    // Store data in Chrome's local storage and send response
+    chrome.storage.local.set(pageMap, function () {
+      sendResponse(pageMap);
+    });
+
+    return true; // Indicates that the response is asynchronous
+  }
+  if (request.action === 'autoSave') {
+    autoSave = request.autoSave;
+    setTimeout(sendFormDataOnEasyApply, 1000);
+  }
+});
+
+if (window.location.href.includes('linkedin.com/jobs')) {
   // The button changes to easy apply a short time after the entire page has loaded, so we need to wait a bit before checking for it
-  window.onload = setTimeout(sendFormDataOnEasyApply, 1000);
 }
 
 /**
@@ -126,6 +134,7 @@ export async function sendFormDataOnEasyApply() {
 
   const easyApplyButton = document.querySelector(easyApplyButtonClass);
 
+  console.log('Checking for easy apply...');
   let observer;
   if (
     !observer && // If the observer is not already attached
@@ -133,6 +142,7 @@ export async function sendFormDataOnEasyApply() {
     easyApplyButton.innerText.toLowerCase() === 'easy apply'
   ) {
     // Easy apply has been found
+    console.log('Easy apply found!');
     const jobElement = document.querySelector(applyDivClass);
 
     observer = new MutationObserver((mutations, sent = sentApplication) => {
@@ -144,16 +154,7 @@ export async function sendFormDataOnEasyApply() {
               node.classList.contains(postApplyClass)
             ) {
               // Now we need to send this to the Google Sheet.
-              sentApplication = true;
-              const pageMap = parseUrl(window.location.href);
-
-              chrome.runtime.sendMessage(
-                { action: 'saveJob', formData: pageMap },
-                function (response) {
-                  console.log('Data sent:', pageMap);
-                  console.log('Response:', response);
-                }
-              );
+              saveJob();
             }
           }
         }
@@ -163,4 +164,16 @@ export async function sendFormDataOnEasyApply() {
 
     observer.observe(jobElement, config);
   }
+}
+
+function saveJob() {
+  const pageMap = parseUrl(window.location.href);
+
+  chrome.runtime.sendMessage(
+    { action: 'saveJob', formData: pageMap },
+    function (response) {
+      console.log('Data sent:', pageMap);
+      console.log('Response:', response);
+    }
+  );
 }
