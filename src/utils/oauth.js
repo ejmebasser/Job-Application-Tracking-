@@ -158,6 +158,8 @@ export default class OAuth {
       ],
     };
 
+    // I tried using axios here, but I couldn't get axios to use HTTP, and the service worker
+    // script (background.js) cannot use xhr, so I have stuck with fetch.
     return fetch(url, {
       method: 'POST',
       headers: {

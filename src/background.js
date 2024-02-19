@@ -1,16 +1,17 @@
 import OAuth from './utils/oauth';
 
-chrome.action.onClicked.addListener((tab) => {
-  chrome.tabs.openPopup();
-});
-
 // function that injects code to a specific tab
-function injectScript(tabId) {
+export function injectScript(tabId) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     files: ['dist/inject.bundle.js'],
   });
 }
+
+// Open the popup when the extension icon is clicked
+chrome.action.onClicked.addListener((tab) => {
+  chrome.tabs.openPopup();
+});
 
 // adds a listener to tab change
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
@@ -42,12 +43,9 @@ chrome.runtime.onMessage.addListener(async function (
   sendResponse
 ) {
   console.log('listener started');
-  if (message.action === 'saveJob') {
-    const oauth = await initializeOauth();
-    console.log('saving job');
-    console.log(oauth);
 
-    const response = await oauth.appendValues(message.formData);
+  if (message.action === 'saveJob') {
+    response = await saveJob(message.formData);
     sendResponse(response);
   }
 
@@ -61,9 +59,18 @@ chrome.runtime.onMessage.addListener(async function (
  * @returns {OAuth} The OAuth object.
  
  */
-async function initializeOauth() {
+export async function initializeOauth() {
   let oauth = new OAuth();
   oauth = await oauth.getOAuth();
 
   return oauth;
+}
+
+export async function saveJob(formData) {
+  const oauth = await initializeOauth();
+  console.log('saving job');
+  console.log(oauth);
+
+  const response = await oauth.appendValues(formData);
+  return response;
 }

@@ -104,4 +104,23 @@ describe('OAuth', () => {
       expect(values).toEqual(expectedResult);
     });
   });
+
+  // Below this are the integration tests
+  describe('getOAuth', () => {
+    it('should get the OAuth token', async () => {
+      const oauth = new OAuth();
+      const oauthObj = await oauth.getOAuth();
+
+      expect(oauthObj).toBeDefined();
+    });
+  });
+
+  describe('getAuthToken', () => {
+    it('should get the OAuth token', async () => {
+      const oauth = new OAuth();
+      const token = await oauth.getAuthToken();
+
+      expect(token).toBeDefined();
+    });
+  });
 });

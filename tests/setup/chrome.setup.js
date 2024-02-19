@@ -1,16 +1,21 @@
 // Mock chrome API
 global.chrome = {
-  tabs: {
-    query: async () => {
-      throw new Error('Not implemented');
+  action: {
+    onClicked: {
+      addListener: jest.fn((listener) => {
+        messageListener = listener;
+      }),
     },
-    sendMessage: jest.fn().mockImplementation((tabId, message, callback) => {
-      callback();
+  },
+  identity: {
+    getAuthToken: jest.fn((options, callback) => {
+      callback('mock-token');
     }),
   },
+
   runtime: {
     lastError: null,
-    onMessageExternal: {
+    onMessage: {
       addListener: jest.fn((listener) => {
         messageListener = listener;
       }),
@@ -19,10 +24,8 @@ global.chrome = {
       callback();
     }),
   },
-  identity: {
-    getAuthToken: jest.fn((options, callback) => {
-      callback('mock-token');
-    }),
+  scripting: {
+    executeScript: jest.fn((tabId) => {}),
   },
   storage: {
     local: {
@@ -38,5 +41,15 @@ global.chrome = {
       }),
       set: jest.fn((items, callback) => callback()),
     },
+  },
+  tabs: {
+    query: jest.fn(),
+    sendMessage: jest.fn().mockImplementation((tabId, message) => {}),
+    onUpdated: {
+      addListener: jest.fn((listener) => {
+        messageListener = listener;
+      }),
+    },
+    openPopup: jest.fn(),
   },
 };

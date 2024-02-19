@@ -96,7 +96,9 @@ export function parseUrl(url) {
  */
 
 let autoSave = false;
+let savedApplication = false;
 let pageMap;
+let observer;
 
 // Add a listener to listen for the 'loadData' action.
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -113,9 +115,13 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     return true; // Indicates that the response is asynchronous
   }
+
+  // If we have set autosave to true, we need to send the form data to the Google Sheet on saving
   if (request.action === 'autoSave') {
     autoSave = request.autoSave;
-    setTimeout(sendFormDataOnEasyApply, 1000);
+    if (!savedApplication && autoSave) {
+      setTimeout(sendFormDataOnEasyApply, 500);
+    }
   }
 });
 
@@ -128,24 +134,24 @@ if (window.location.href.includes('linkedin.com/jobs')) {
  * This could probably be reused for behavior on other sites and with other application types.
  */
 export async function sendFormDataOnEasyApply() {
+  // Identify the classes to look for
   const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';
   const applyDivClass = '.jobs-s-apply';
   const postApplyClass = 'artdeco-inline-feedback--success';
 
+  // Get the elements
   const easyApplyButton = document.querySelector(easyApplyButtonClass);
+  const jobElement = document.querySelector(applyDivClass);
 
-  console.log('Checking for easy apply...');
-  let observer;
   if (
-    !observer && // If the observer is not already attached
-    easyApplyButton &&
-    easyApplyButton.innerText.toLowerCase() === 'easy apply'
+    !observer &&
+    jobElement // If the job element is found
+    // && easyApplyButton.innerText.toLowerCase() === 'easy apply'
   ) {
     // Easy apply has been found
-    console.log('Easy apply found!');
-    const jobElement = document.querySelector(applyDivClass);
+    // console.log('Easy apply found!');
 
-    observer = new MutationObserver((mutations, sent = sentApplication) => {
+    observer = new MutationObserver((mutations, mutationObserver) => {
       for (const mutation of mutations) {
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
           for (const node of mutation.addedNodes) {
@@ -154,7 +160,18 @@ export async function sendFormDataOnEasyApply() {
               node.classList.contains(postApplyClass)
             ) {
               // Now we need to send this to the Google Sheet.
-              saveJob();
+              savedApplication = true;
+
+              const pageMap = parseUrl(window.location.href);
+              saveJob(pageMap);
+
+              // I was trying to debug why I sometimes get two job saves at a time
+              // I am preserving this here as I think it may be due to multiple mutations,
+              // but I stopped observing the behavior during debugging.
+              // console.log(
+              //   'Application submitted from mutation on:',
+              //   mutationObserver
+              // );
             }
           }
         }
@@ -166,14 +183,12 @@ export async function sendFormDataOnEasyApply() {
   }
 }
 
-function saveJob() {
-  const pageMap = parseUrl(window.location.href);
-
+function saveJob(formData) {
   chrome.runtime.sendMessage(
-    { action: 'saveJob', formData: pageMap },
+    { action: 'saveJob', formData: formData },
     function (response) {
-      console.log('Data sent:', pageMap);
-      console.log('Response:', response);
+      // console.log('Data sent:', formData);
+      // console.log('Response:', response);
     }
   );
 }

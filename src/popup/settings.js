@@ -68,12 +68,13 @@ export default class Settings {
   }
 
   /**
-   * Update the values of the settings fields.
+   * Update the values of the settings fields from stored values.
    *
    * @param {object} settings The settings object.
    */
   updateSettingsValues(settings) {
     this.fields = settings;
+
     for (let [key, value] of Object.entries(settings)) {
       let inputField;
       switch (typeof value) {
@@ -105,7 +106,6 @@ export default class Settings {
    * @param {object} settings The settings object.
    */
   storeSettingsValues(settings) {
-    this.fields = settings;
     chrome.storage.local.set(settings, (results) => {
       if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError);
@@ -184,8 +184,13 @@ export default class Settings {
     sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
   }
 
+  /**
+   * Send a message to the tab to set the autoSave value.
+   *
+   * @param {boolean} autoSave whether to auto save the form
+   */
   sendAutoSaveMessage(autoSave) {
-    console.log('Auto saving set to: ' + autoSave);
+    // console.log('Auto saving set to: ' + autoSave);
     this.utils.sendMessage({ action: 'autoSave', autoSave: autoSave });
   }
 }
