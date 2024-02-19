@@ -150,7 +150,6 @@ describe('Settings', () => {
       const sheetId = settings.settingsForm.querySelector(
         'select[name="sheetId"]'
       );
-      console.log(sheetId);
 
       expect(autoSave.checked).toBe(true);
       expect(sheetName.value).toBe('test-id');
@@ -173,24 +172,26 @@ describe('Settings', () => {
   });
 
   describe('populateSheetList function', () => {
+    const sheetIds = [
+      { id: 'test-sheet-id1', name: 'idName1' },
+      { id: 'test-sheet-id2', name: 'idName2' },
+    ];
+
+    const sheetNames = [
+      { id: 'test-sheet1', name: 'name1' },
+      { id: 'test-sheet2', name: 'name2' },
+    ];
     beforeEach(async () => {
-      const oauth = await settings.getOauth();
+      oauth = await settings.getOauth();
 
-      const sheetIds = [
-        { id: 'test-sheet-id1', name: 'idName1' },
-        { id: 'test-sheet-id2', name: 'idName2' },
-      ];
-      oauth.getSheetNames = jest.fn().mockResolvedValue(sheetIds);
+      oauth.getSheets = jest.fn().mockResolvedValue(sheetIds);
 
-      const sheetNames = [
-        { id: 'test-sheet1', name: 'name1' },
-        { id: 'test-sheet2', name: 'name2' },
-      ];
       oauth.getSheetNames = jest.fn().mockResolvedValue(sheetNames);
     });
 
     it('should call the getSheets function', async () => {
-      const oauth = await settings.getOauth();
+      console.log(oauth);
+      console.debug(oauth);
       const getSheets = jest.spyOn(oauth, 'getSheets');
 
       await settings.populateSheetList();
@@ -200,46 +201,48 @@ describe('Settings', () => {
 
     it('should replace the options in the select element with the new sheet names', async () => {
       await settings.populateSheetList();
+      const sheetId = settings.settingsForm.querySelector(
+        'select[name="sheetId"]'
+      );
 
-      expect(settings.settingsForm.sheetId.innerHTML).toBe(
-        '<option value="test-sheet1">test-sheet1</option><option value="test-sheet2">test-sheet2</option>'
+      expect(sheetId.innerHTML).toBe(
+        '<option value="test-sheet-id1">idName1</option><option value="test-sheet-id2">idName2</option>'
       );
     });
   });
 
-  /**
   describe('populateSheetNameList function', () => {
-    beforeEach(() => {
-      const sheetIds = [
-        { id: 'test-sheet-id1', name: 'idName1' },
-        { id: 'test-sheet-id2', name: 'idName2' },
-      ];
-      oauth.getSheetNames = jest.fn().mockResolvedValue(sheetIds);
+    const sheetNames = [
+      { id: 'test-sheet1', name: 'name1' },
+      { id: 'test-sheet2', name: 'name2' },
+    ];
+    beforeEach(async () => {
+      oauth = await settings.getOauth();
 
-      const sheetNames = [
-        { id: 'test-sheet1', name: 'name1' },
-        { id: 'test-sheet2', name: 'name2' },
-      ];
       oauth.getSheetNames = jest.fn().mockResolvedValue(sheetNames);
     });
 
-    it('should call the getSheetNames function', () => {
+    it('should call the getSheetNames function', async () => {
       const getSheetNames = jest.spyOn(oauth, 'getSheetNames');
+      const sheetId = 'test-id';
 
-      settings.populateSheetNameList('test-id');
+      await settings.populateSheetNameList(sheetId);
 
-      expect(getSheetNames).toHaveBeenCalledWith('test-id');
+      expect(getSheetNames).toHaveBeenCalledWith(sheetId);
     });
 
     it('should replace the options in the select element with the new sheet names', async () => {
       await settings.populateSheetNameList('test-id');
 
-      expect(settings.settingsForm.sheetName.innerHTML).toBe(
-        '<option value="test-sheet1">test-sheet1</option><option value="test-sheet2">test-sheet2</option>'
+      const sheetName = settings.settingsForm.querySelector(
+        'input[name="sheetName"]'
+      );
+
+      expect(sheetName.innerHTML).toBe(
+        '<option value="test-sheet1">name1</option><option value="test-sheet2">name2</option>'
       );
     });
   });
-  */
 
   describe('sendAutoSaveMessage function', () => {
     it('should call the sendMessage function', () => {
