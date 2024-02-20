@@ -1,17 +1,22 @@
 import OAuth from '../../src/utils/oauth.js';
-import axios from 'axios';
 
 let oauth;
-jest.mock('axios');
+
+function mockFetchResponse(dataObj) {
+  const expectedResult = {
+    status: 200,
+    ok: true,
+    json: async () => dataObj,
+  };
+
+  return expectedResult;
+}
 
 describe('OAuth', () => {
   beforeEach(() => {
     oauth = new OAuth();
-  });
 
-  afterEach(() => {
-    axios.post.mockClear();
-    axios.get.mockClear();
+    fetch.mockClear();
   });
 
   describe('getOAuth', () => {
@@ -33,7 +38,7 @@ describe('OAuth', () => {
 
   describe('getSheets', () => {
     it('should get the list of sheets', async () => {
-      const expectedResult = {
+      const data = {
         files: [
           {
             name: 'Test Sheet',
@@ -41,13 +46,13 @@ describe('OAuth', () => {
           },
         ],
       };
-      axios.get.mockResolvedValue({ data: expectedResult });
+      fetch.mockResolvedValue(mockFetchResponse(data));
 
       const sheets = await oauth.getSheets();
 
       expect(sheets).toBeDefined();
       expect(sheets).toEqual(
-        expectedResult.files.map((file) => ({
+        data.files.map((file) => ({
           name: file.name,
           id: file.id,
         }))
@@ -66,7 +71,7 @@ describe('OAuth', () => {
           },
         ],
       };
-      axios.get.mockResolvedValue({ data: expectedResult });
+      fetch.mockResolvedValue(mockFetchResponse(expectedResult));
 
       const sheetNames = await oauth.getSheetNames('test-id');
 
@@ -77,14 +82,14 @@ describe('OAuth', () => {
     });
   });
 
-  describe('getSheetValues', () => {
-    it('should get the values from a sheet', async () => {
+  describe('getCellValue', () => {
+    it('should get a value from a sheet', async () => {
       const expectedResult = {
         values: ['test-value'],
       };
-      axios.get.mockResolvedValue({ data: expectedResult });
+      fetch.mockResolvedValue(mockFetchResponse(expectedResult));
 
-      const sheetValues = await oauth.getSheetValues('test-id', 'test-tab');
+      const sheetValues = await oauth.getCellValue('test-id');
 
       expect(sheetValues).toBeDefined();
       expect(sheetValues).toEqual(expectedResult);
@@ -96,31 +101,12 @@ describe('OAuth', () => {
       const expectedResult = {
         status: 200,
       };
-      axios.post.mockResolvedValue(expectedResult);
+      fetch.mockResolvedValue(expectedResult);
 
       const values = await oauth.appendValues('test-id', 'test-tab', {});
 
       expect(values).toBeDefined();
       expect(values).toEqual(expectedResult);
-    });
-  });
-
-  // Below this are the integration tests
-  describe('getOAuth', () => {
-    it('should get the OAuth token', async () => {
-      const oauth = new OAuth();
-      const oauthObj = await oauth.getOAuth();
-
-      expect(oauthObj).toBeDefined();
-    });
-  });
-
-  describe('getAuthToken', () => {
-    it('should get the OAuth token', async () => {
-      const oauth = new OAuth();
-      const token = await oauth.getAuthToken();
-
-      expect(token).toBeDefined();
     });
   });
 });

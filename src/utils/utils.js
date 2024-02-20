@@ -66,7 +66,7 @@ export default class Utils {
   throttle(func, delay) {
     let timeoutId;
     let called = false; // Flag to track if the function has been called already
-    console.log('throttle: ', func, called);
+
     return function () {
       const context = this;
       const args = arguments;

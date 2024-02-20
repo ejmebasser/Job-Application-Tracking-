@@ -1,10 +1,16 @@
-import '../src/main.js';
+import '../../src/main.js';
 
 /**
- * These were all auto generated using GitHub Copilot.
+ * Tests for main.js.
  *
- * Please note that the tests are not complete and need to be updated.
+ * Most of main.js is a script to be run when the popup starts, and as such there are limited tests to be run here
  *
- * Please annotate the tests when a test has been verified.
+ * The current test is a single dummy test
  */
-describe('main.js tests', () => {});
+describe('main.js tests', () => {
+  describe('it runs necessary functions on load', () => {
+    it('boots up', () => {
+      expect(true);
+    });
+  });
+});

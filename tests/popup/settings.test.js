@@ -190,8 +190,6 @@ describe('Settings', () => {
     });
 
     it('should call the getSheets function', async () => {
-      console.log(oauth);
-      console.debug(oauth);
       const getSheets = jest.spyOn(oauth, 'getSheets');
 
       await settings.populateSheetList();

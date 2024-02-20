@@ -8,8 +8,8 @@ global.chrome = {
     },
   },
   identity: {
-    getAuthToken: jest.fn((options, callback) => {
-      callback('mock-token');
+    getAuthToken: jest.fn(async (options, callback) => {
+      Promise.resolve(callback('mock-token'));
     }),
   },
 

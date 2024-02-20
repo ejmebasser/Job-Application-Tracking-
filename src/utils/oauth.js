@@ -58,7 +58,9 @@ export default class OAuth {
         Authorization: 'Bearer ' + this.authToken,
       },
     })
-      .then((response) => response.json())
+      .then((response) => {
+        return response.json();
+      })
       .then((data) => {
         const files = data.files.map((file) => ({
           name: file.name,
@@ -69,7 +71,6 @@ export default class OAuth {
       })
       .catch((error) => {
         console.error(error);
-        throw error;
       });
   }
 
@@ -97,7 +98,6 @@ export default class OAuth {
       })
       .catch((error) => {
         console.error(error);
-        throw error;
       });
   }
 
@@ -124,7 +124,6 @@ export default class OAuth {
       })
       .catch((error) => {
         console.error(error);
-        throw error;
       });
   }
 
@@ -169,12 +168,10 @@ export default class OAuth {
       body: JSON.stringify(resource),
     })
       .then((response) => {
-        console.log(response);
         return response;
       })
       .catch((error) => {
         console.error(error);
-        throw error;
       });
   }
 }

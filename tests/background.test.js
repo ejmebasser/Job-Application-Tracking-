@@ -6,7 +6,10 @@ import * as Background from '../src/background';
 describe('background.js', () => {
   describe('injectScript function', () => {
     it('should inject a script to a tab', () => {
-      const tabId = 1;
+      const target = {
+        files: ['dist/inject.bundle.js'],
+        target: { tabId: 1 },
+      };
       Background.injectScript(tabId);
 
       expect(chrome.scripting.executeScript).toHaveBeenCalledWith(tabId);
