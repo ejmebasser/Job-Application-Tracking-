@@ -1,30 +1,44 @@
 {
   "manifest_version": 3,
-  "name": "LinkedUp",
+  "name": "JobApplicationTrakr",
   "version": "1.0.0",
-  "content_scripts": [
-    {
-      "matches": ["https://www.linkedin.com/*", "https://www.indeed.com/*", "https://www.glassdoor.com/*"],
-      "js": ["inject.js"]
-    }
-  ],
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg0fec3FiQX4EVGIs8davZV7M16XxDpzwCe6NJkqi7lDcfTrM3uduBn/spanMBBk8MYqeK836JLrszSz7d9WnM4YrgiHG4sd5tyuY0DW1aVxk9hqrj/1OuubtwU6CyZD7QaWnUx6ulhc6HCG/yw0ZmQ0FNWF+PPoM/Aswuuqk6+V37omcuBEO6K2cQ9ERrcb1cG81znCC4faHbLOszNUkoCcfYXhlxs1VmddHTqdr3N7YAaeTOK10QNBkWv3sMWd1khXb+VX/yk02GCcos4cs48AYl9tlDh4Ug0/Y2QIGkEG4giw46AgOkY6YW7y1g1wUQ45F1besnNb8R1QmkUP7kwIDAQAB",
   "action": {
     "default_popup": "popup.html",
     "default_title": "LinkedUp"
   },
-
+  "oauth2": {
+    "client_id": "40510895582-6gg1iiips6aq3rf2kl1c50deg4nlsv46.apps.googleusercontent.com",
+    "scopes": [
+      "openid",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/drive.readonly"
+    ]
+  },
   "permissions": [
-    "scripting",
-    "tabs",
-    "activeTab", 
-    "storage"
-],
-"host_permissions": [
-    "http://*/*",
-    "https://*/*"
-],
-
-"background": {
-  "service_worker": "background.js"
-}
+    "activeTab",
+    "storage",
+    "identity",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.linkedin.com/jobs/*",
+    "https://www.indeed.com/*",
+    "https://www.glassdoor.com/*"
+  ],
+  "background": {
+    "service_worker": "dist/background.bundle.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.linkedin.com/jobs/*",
+        "https://www.indeed.com/*",
+        "https://www.glassdoor.com/*"
+      ],
+      "js": [
+        "dist/inject.bundle.js"
+      ]
+    }
+  ]
 }

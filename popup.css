@@ -12,7 +12,35 @@ header, #form, footer {
   margin: 1em;
 }
 
-#form ul {
+#sheetSection {
+  display: table;
+  width: 100%;
+}
+
+#sheetSection > #sheet {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+#sheetSection > button {
+  float: right;
+  background: none;
+  border: none;
+}
+
+#settings {
+  display: none;
+}
+
+#settings select {
+  width: 100%;
+}
+
+#main {
+  padding: 0 .5em;
+}
+
+#main ul {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -20,7 +48,7 @@ header, #form, footer {
   flex-direction: column;
 }
 
-#form li, #form button {
+#main li, #main button {
   margin: 0.5em 0em;
   padding: 0;
   width: 100%;
@@ -28,7 +56,7 @@ header, #form, footer {
   justify-content: center;
 }
 
-#form li label {
+#main li label {
   flex-grow: 1;
   text-align: right;
   margin-right: 1em;
