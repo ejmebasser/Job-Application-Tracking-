@@ -1,48 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>LinkedUp</title>
-    <link rel="stylesheet" href="popup.css">
+  <meta charset="UTF-8">
+  <title>LinkedUp</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
-    <header>
-      <h1>Job Application Tracker</h1>
-      <span id="sheet"></span>
-      <button id="linkSheet"><img src="/assets/cogwheel32.png"/></button>
-    </header>
-    <hr />
-    <div id="form">
-      <form id="jobForm">
-        <ul>
-          <li>
-            <label for="jobTitle">Job Title:</label>
-            <input type="text" name="jobTitle" value=""><br>
-          </li>
-          <li>
-            <label for="company">Company:</label>
-            <input type="text" name="company" value=""><br>
-          </li>
-          <li>
-            <label for="unknownInput">Unknown Input:</label>
-            <input type="text" name="unknownInput" value=""><br>
-          </li>
-          <li>
-            <label for="applicationDateTime">Application Date and Time:</label>
-            <input type="text" name="applicationDateTime" value=""><br>
-          </li>
-          <li>
-            <label for="url">URL:</label>
-            <input type="text" name="url" value="" readonly><br>
-          </li>
-        </ul>
-       
-        <button id="submitButton">Save Data</button>
-      </form>
-      <button id="loadDataButton">Load Data</button>
-      <div id="result"></div>
+  <header>
+    <h1>Job Application Tracker</h1>
+    <div id="sheetSection">
+      <span id="sheet">No Google Sheet Selected</span>
+      <button id="settingsButton">
+        <img src="/assets/cogwheel32.png" />
+        <!-- Open Settings -->
+      </button>
     </div>
-    <footer></footer>
-    <script src="popup.js"></script> <!-- Ensure your script for the popup is here -->
+  </header>
+  <hr />
+  <div id="main">
+    <form id="settings">
+      <ul>
+        <!-- <li>
+          <label for="dataConsent">Do you consent for us to collect data?</label>
+          <input type="checkbox" name="dataConsent"><br>
+        </li>
+        <li id="disclosure">
+          We will only collect that you have sumbitted an application and we will anonymize your data submission.
+        </li> -->
+        <li>
+          <label for="autoLoad">Do you want to automatically load data when the popup is opened?</label>
+          <input type="checkbox" name="autoLoad" checked><br>
+        </li>
+        <li>
+          <label for="autoSave">Do you want to automatically save data after application?</label>
+          <input type="checkbox" name="autoSave" checked><br>
+        </li>
+        <li>
+          <label for="autoHide">Do you want to automatically hide jobs after application?</label>
+          <input type="checkbox" name="autoHide" checked><br>
+        </li>
+        <li>
+          <label for="sheetId">Sheet ID:</label>
+          <input type="text" name="sheetId" value=""><br>
+        </li>
+        <li>
+          <label for="sheetName">Sheet Name (Tab at Bottom):</label>
+          <input type="text" name="sheetName" value=""><br>
+        </li>
+      </ul>
+      <button id="saveSettings">Save Settings</button>
+    </form>
+    <form id="jobForm">
+      <ul>
+        <li>
+          <label for="jobTitle">Job Title:</label>
+          <input type="text" name="jobTitle" value=""><br>
+        </li>
+        <li>
+          <label for="company">Company:</label>
+          <input type="text" name="company" value=""><br>
+        </li>
+        <li>
+          <label for="source">Source:</label>
+          <input type="text" name="source" value=""><br>
+        </li>
+        <li>
+          <label for="applicationDateTime">Application Date and Time:</label>
+          <input type="text" name="applicationDateTime" value=""><br>
+        </li>
+        <li>
+          <label for="url">URL:</label>
+          <input type="text" name="url" value="" readonly><br>
+        </li>
+      </ul>
+      <button id="loadData">Load Data</button>
+      <button id="saveData">Save Data</button>
+    </form>
+    <div id="result"></div>
+  </div>
+  <footer></footer>
+  <!-- Ensure your script for the popup is here -->
+  <script src="dist/popup.bundle.js"></script>
 </body>
+
 </html>
