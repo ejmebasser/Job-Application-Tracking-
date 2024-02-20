@@ -3,6 +3,7 @@ import OAuth from '../../src/utils/oauth';
 
 let settings;
 let oauth;
+
 describe('Settings', () => {
   beforeEach(async () => {
     const jobForm = document.createElement('form');
@@ -177,10 +178,7 @@ describe('Settings', () => {
       { id: 'test-sheet-id2', name: 'idName2' },
     ];
 
-    const sheetNames = [
-      { id: 'test-sheet1', name: 'name1' },
-      { id: 'test-sheet2', name: 'name2' },
-    ];
+    const sheetNames = ['test-sheet1', 'test-sheet2'];
     beforeEach(async () => {
       oauth = await settings.getOauth();
 
@@ -210,10 +208,8 @@ describe('Settings', () => {
   });
 
   describe('populateSheetNameList function', () => {
-    const sheetNames = [
-      { id: 'test-sheet1', name: 'name1' },
-      { id: 'test-sheet2', name: 'name2' },
-    ];
+    const sheetNames = ['test-sheet1', 'test-sheet2'];
+
     beforeEach(async () => {
       oauth = await settings.getOauth();
 
@@ -233,11 +229,11 @@ describe('Settings', () => {
       await settings.populateSheetNameList('test-id');
 
       const sheetName = settings.settingsForm.querySelector(
-        'input[name="sheetName"]'
+        'input[name="sheetName"], select[name="sheetName"]'
       );
 
       expect(sheetName.innerHTML).toBe(
-        '<option value="test-sheet1">name1</option><option value="test-sheet2">name2</option>'
+        `<option value="${sheetNames[0]}">${sheetNames[0]}</option><option value="${sheetNames[1]}">${sheetNames[1]}</option>`
       );
     });
   });

@@ -183,7 +183,7 @@ export async function sendFormDataOnEasyApply() {
   }
 }
 
-function saveJob(formData) {
+export function saveJob(formData) {
   chrome.runtime.sendMessage(
     { action: 'saveJob', formData: formData },
     function (response) {

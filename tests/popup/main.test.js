@@ -1,4 +1,4 @@
-import '../../src/main.js';
+import * as Main from '../../src/popup/main.js';
 
 /**
  * Tests for main.js.

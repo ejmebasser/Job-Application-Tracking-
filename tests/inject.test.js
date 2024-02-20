@@ -1,4 +1,3 @@
-import { jobs_v3p1beta1 } from 'googleapis';
 import * as injectModule from '../src/inject';
 
 /**
@@ -61,5 +60,39 @@ describe('inject.js', () => {
     });
   });
 
-  // We can't test sendFormData because it's an async function that relies on the DOM mutating
+  // These tests are not complete.
+  describe('sendFormData function', () => {
+    beforeEach(() => {
+      document.body.innerHTML = `
+      <div class="jobs-s-apply"><button id="applyButton">Apply</button></div>`;
+    });
+
+    it('should attach the MutationObserver to the apply button', async () => {
+      const mutationObserver = jest.spyOn(window, 'MutationObserver');
+      window.MutationObserver.mockImplementation(() => ({ observe: () => {} }));
+
+      await injectModule.sendFormDataOnEasyApply();
+
+      const applyDiv = document.querySelector('.jobs-s-apply');
+
+      expect(applyDiv).toBeDefined();
+      expect(mutationObserver).toHaveBeenCalled();
+    });
+  });
+
+  describe('saveJob function', () => {
+    it('should send a message to the background script to save the job', () => {
+      const formData = {
+        jobTitle: 'Software Engineer',
+        company: 'Company Inc.',
+        source: 'LinkedIn',
+        applicationDateTime: '12/31/2022 23:59:59',
+        url: 'https://www.linkedin.com/jobs/view/1234567890',
+      };
+
+      injectModule.saveJob(formData);
+
+      expect(chrome.runtime.sendMessage).toHaveBeenCalled();
+    });
+  });
 });
