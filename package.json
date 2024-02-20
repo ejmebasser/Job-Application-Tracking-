@@ -4,8 +4,7 @@
   "description": "A simple job application tracker",
   "scripts": {
     "test": "jest",
-    "start": "webpack --mode development",
-    "build": "webpack --mode production"
+    "build": "webpack"
   },
   "devDependencies": {
     "@babel/plugin-transform-modules-commonjs": "^7.23.3",
