@@ -97,21 +97,18 @@ export function parseUrl(url) {
 
 let autoSave = false;
 let savedApplication = false;
-let pageMap;
 let observer;
 
 // Add a listener to listen for the 'loadData' action.
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === 'loadData') {
-    if (!pageMap) {
-      const pageUrl = window.location.href;
+    const pageUrl = window.location.href;
 
-      pageMap = parseUrl(pageUrl);
-    }
+    const pageMap = parseUrl(pageUrl);
     // Store data in Chrome's local storage and send response
-    chrome.storage.local.set(pageMap, function () {
-      sendResponse(pageMap);
-    });
+
+    console.log('loadData:', pageMap);
+    sendResponse(pageMap);
 
     return true; // Indicates that the response is asynchronous
   }

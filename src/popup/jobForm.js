@@ -60,7 +60,7 @@ export default class JobForm {
     saveButton.textContent = 'Submitting...';
 
     const oauth = await this.getOauth();
-    console.log(oauth);
+    // console.log(oauth);
 
     // submit the form data to Google Apps Script
     oauth

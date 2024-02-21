@@ -42,8 +42,6 @@ chrome.runtime.onMessage.addListener(async function (
   sender,
   sendResponse
 ) {
-  console.log('listener started');
-
   if (message.action === 'saveJob') {
     response = await saveJob(message.formData);
     sendResponse(response);
@@ -68,8 +66,8 @@ export async function initializeOauth() {
 
 export async function saveJob(formData) {
   const oauth = await initializeOauth();
-  console.log('saving job');
-  console.log(oauth);
+  // console.log('saving job');
+  // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
   return response;
