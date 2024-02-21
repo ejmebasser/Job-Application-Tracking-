@@ -6,10 +6,16 @@ on:
   pull_request:
     branches: ['main']
 
+strategy:
+  matrix:
+    node-version: [21.x]
+
 jobs:
   test_and_build:
     runs-on: ubuntu-latest
     steps:
+      - name: Run Test and Build
+        uses: actions/checkout@v2
       - name: Run Test and Build
         uses: ./.github/actions/test_and_build
 
@@ -18,4 +24,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Zip
-        uses: ./.github/actions/zip.yaml
+        uses: ./.github/actions/zip

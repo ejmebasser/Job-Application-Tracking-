@@ -1,32 +1,31 @@
-# This file is not a workflow file and should not be executed by GitHub Actions.
-# It is a template for a job to zip files and is intended to be referenced by other workflow files.
+name: Test and Build
 
-name: Node.js CI
+description: This action will build and test the JobTrakr extension.
 
-runs-on: ubuntu-latest
+inputs:
+  node-version:
+    description: 'The version of Node.js to use for testing and building the extension.'
+    required: true
+    default: '21.x'
 
-strategy:
-  matrix:
-    node-version: [21.x]
-    # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-    # Currently building to the latest available, leaving this here for future maintainers to add versions
-
-steps:
-  - name: Checkout repository
-    uses: actions/checkout@v3
-  - name: Use Node.js ${{ matrix.node-version }}
-    uses: actions/setup-node@v3
-    with:
-      node-version: ${{ matrix.node-version }}
-      cache: 'npm'
-  - name: Install dependencies
-    run: npm ci
-  - name: Run tests
-    run: npm test
-  - name: Build
-    run: npm run build
-  - name: Upload release
-    uses: actions/upload-artifact@v2
-    with:
-      name: JobTrakr
-      path: ./dist
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm ci
+    - name: Run tests
+      run: npm test
+    - name: Build
+      run: npm run build
+    - name: Upload release
+      uses: actions/upload-artifact@v2
+      with:
+        name: JobTrakr
+        path: ./dist
