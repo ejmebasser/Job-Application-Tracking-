@@ -1,0 +1,34 @@
+name: Test and Build
+
+description: This action will build and test the JobTrakr extension.
+
+inputs:
+  node-version:
+    description: 'The version of Node.js to use for testing and building the extension.'
+    required: true
+    default: '21.x'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+    - name: Run tests
+      shell: bash
+      run: npm test
+    - name: Build
+      shell: bash
+      run: npm run build
+    - name: Upload release
+      uses: actions/upload-artifact@v2
+      with:
+        name: JobTrakr
+        path: ./dist
