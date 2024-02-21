@@ -1,19 +1,17 @@
 name: Zip Release
 
-jobs:
-  zip-files:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: JobTrakr
-          path: ./dist
-      - name: Zip Files
-        run: |
-          zip -r JobTrakr.zip ./dist manifest.json popup.html popup.css
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: JobTrakr
-          path: ./JobTrakr.zip
+runs-on: ubuntu-latest
+steps:
+  - name: Download Artifact
+    uses: actions/download-artifact@v2
+    with:
+      name: JobTrakr
+      path: ./dist
+  - name: Zip Files
+    run: |
+      zip -r JobTrakr.zip ./dist manifest.json popup.html popup.css
+  - name: Upload Artifact
+    uses: actions/upload-artifact@v2
+    with:
+      name: JobTrakr
+      path: ./JobTrakr.zip
