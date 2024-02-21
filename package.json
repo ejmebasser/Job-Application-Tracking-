@@ -1,6 +1,4 @@
 {
-  "name": "Job Application Trakr",
-  "version": "1.0.0",
   "description": "A simple job application tracker",
   "scripts": {
     "test": "jest",
