@@ -8,7 +8,7 @@ on:
 
 jobs:
   test_and_build:
-    uses: ./.github/actions/test-and-build.yaml
+    uses: ./.github/actions/test_and_build.yaml
 
   zip:
     needs: test_and_build
