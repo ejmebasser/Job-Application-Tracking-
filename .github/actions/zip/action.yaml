@@ -4,16 +4,18 @@ description: Zip the dist folder, manifest.json, popup.html, and popup.css for t
 
 runs:
   using: 'composite'
-  - name: Download Artifact
-    uses: actions/download-artifact@v2
-    with:
-      name: JobTrakr
-      path: ./dist
-  - name: Zip Files
-    run: |
-      zip -r JobTrakr.zip ./dist manifest.json popup.html popup.css
-  - name: Upload Artifact
-    uses: actions/upload-artifact@v2
-    with:
-      name: JobTrakr
-      path: ./JobTrakr.zip
+  shell: bash
+  steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: JobTrakr
+        path: ./dist
+    - name: Zip Files
+      run: |
+        zip -r JobTrakr.zip ./dist manifest.json popup.html popup.css
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: JobTrakr
+        path: ./JobTrakr.zip
