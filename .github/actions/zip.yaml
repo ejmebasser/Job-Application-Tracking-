@@ -4,6 +4,7 @@
 name: Zip Release
 
 runs-on: ubuntu-latest
+
 steps:
   - name: Download Artifact
     uses: actions/download-artifact@v2
