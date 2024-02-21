@@ -10,8 +10,6 @@ jobs:
   test_and_build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
       - name: Run Test and Build
         uses: ./.github/actions/test_and_build.yaml
 
