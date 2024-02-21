@@ -6,18 +6,19 @@ on:
   pull_request:
     branches: ['main']
 
-strategy:
-  matrix:
-    node-version: [21.x]
-
 jobs:
   test_and_build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [21.x]
     steps:
-      - name: Run Test and Build
+      - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Run Test and Build
         uses: ./.github/actions/test_and_build
+        with:
+          node-version: ${{ matrix.node-version }}
 
   zip:
     needs: test_and_build
