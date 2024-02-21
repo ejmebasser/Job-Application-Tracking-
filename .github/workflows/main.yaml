@@ -8,7 +8,14 @@ on:
 
 jobs:
   test_and_build:
-    uses: ./.github/actions/test_and_build.yaml
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Test and Build
+        uses: ./.github/actions/test_and_build
 
   zip:
-    uses: ./.github/actions/zip.yaml
+    needs: test_and_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Zip
+        uses: ./.github/actions/zip.yaml
