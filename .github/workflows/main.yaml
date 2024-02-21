@@ -1,0 +1,15 @@
+name: Main Workflow
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  test_and_build:
+    uses: ./.github/actions/test-and-build.yaml
+
+  zip:
+    needs: test_and_build
+      uses: ./.github/actions/zip.yaml
