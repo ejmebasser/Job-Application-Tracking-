@@ -12,4 +12,4 @@ jobs:
 
   zip:
     needs: test_and_build
-      uses: ./.github/actions/zip.yaml
+    uses: ./.github/actions/zip.yaml

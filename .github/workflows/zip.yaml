@@ -1,3 +1,6 @@
+# This file is not a workflow file and should not be executed by GitHub Actions.
+# It is a template for a job to zip files and is intended to be referenced by other workflow files.
+
 name: Zip Release
 
 runs-on: ubuntu-latest
