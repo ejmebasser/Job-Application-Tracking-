@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 jobForm.querySelector('#hideJob').addEventListener('click', function() {
   // Show an alert (this works only if it's within the same page or a popup)
-  alert('Hide Job button clicked @ 323PM');
+  //alert('Hide Job button clicked @ 323PM');
 
   // Use the Chrome scripting API to execute the script in the active tab
   chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
@@ -109,7 +109,53 @@ jobForm.querySelector('#hideJob').addEventListener('click', function() {
 });
 
 
+//this is what i added
+jobForm.querySelector('#storeJobNumber').addEventListener('click', function() {
+  // Show the first alert with the current time
+  const currentTime = new Date().toLocaleTimeString();
+  alert('Clicked at ' + currentTime);
 
+  // Use the Chrome scripting API to execute the script in the active tab to get the current URL
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    const url = tabs[0].url;
+    // Extract the jobID from the URL
+    const jobIdMatch = url.match(/currentJobId=(\d+)/);
+    const jobId = jobIdMatch ? jobIdMatch[1] : null;
+
+    if (jobId) {
+      // Show the second alert with the jobID
+      alert('Job ID: ' + jobId);
+
+      // Retrieve the current 'jobsApplied' array from chrome.storage.local
+      chrome.storage.local.get(['jobsApplied'], function(result) {
+        let jobsApplied = result.jobsApplied || [];
+
+        // Alert the current 'jobsApplied' array before adding the new jobID
+        alert('Current saved jobs: ' + (jobsApplied.length > 0 ? jobsApplied.join(', ') : 'None'));
+
+        if (!jobsApplied.includes(jobId)) {
+          jobsApplied.push(jobId);
+
+          // Save the updated 'jobsApplied' array back to chrome.storage.local
+          chrome.storage.local.set({'jobsApplied': jobsApplied}, function() {
+            console.log('Job ID added to jobsApplied:', jobId);
+
+            // Alert the updated 'jobsApplied' array after adding the new jobID
+            alert('Updated jobs list: ' + jobsApplied.join(', '));
+          });
+        } else {
+          // Alert that the job ID already exists and cancel out of this function with a specific message
+          alert('Will not load because you have already applied to this position. Job ID ' + jobId + ' already exists in your list.');
+          return; // Cancel out of the function if the jobID already exists
+        }
+      });
+    } else {
+      alert('Job ID not found.');
+    }
+  });
+});
+
+//this is what i added
 
   document
     .querySelector('#settingsButton')
