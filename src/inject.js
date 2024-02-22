@@ -120,6 +120,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       setTimeout(sendFormDataOnEasyApply, 500);
     }
   }
+  // ****************** New Code Block Starts Here ******************
+  else if (request.action === 'dismissJob') {
+    const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+    if (dismissButton) {
+      dismissButton.click();
+      console.log('Dismiss job button clicked.');
+      sendResponse({success: true, message: "Job dismissed successfully."});
+    } else {
+      console.error('Dismiss button not found.');
+      sendResponse({success: false, message: "Dismiss button not found."});
+    }
+    return true; // Indicates that the response is asynchronous
+  }
+  // ****************** New Code Block Ends Here ******************
 });
 
 if (window.location.href.includes('linkedin.com/jobs')) {

@@ -141,6 +141,7 @@ export default class JobForm {
     this.utils.sendMessage({ action: 'loadData' }, function (response) {
       if (response) {
         jobForm.updateForm(response);
+        // alert('line 144 triggered from jobForm.js')
       }
     });
   }
