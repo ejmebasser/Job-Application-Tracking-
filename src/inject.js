@@ -107,7 +107,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     const pageMap = parseUrl(pageUrl);
     // Store data in Chrome's local storage and send response
 
-    console.log('loadData:', pageMap);
     sendResponse(pageMap);
 
     return true; // Indicates that the response is asynchronous
@@ -115,6 +114,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
   // If we have set autosave to true, we need to send the form data to the Google Sheet on saving
   if (request.action === 'autoSave') {
+    console.log('Auto save:', request.autoSave);
     autoSave = request.autoSave;
     if (!savedApplication && autoSave) {
       setTimeout(sendFormDataOnEasyApply, 500);
@@ -169,6 +169,8 @@ export async function sendFormDataOnEasyApply() {
               //   'Application submitted from mutation on:',
               //   mutationObserver
               // );
+
+              observer.disconnect();
             }
           }
         }

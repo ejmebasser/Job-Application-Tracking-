@@ -14,6 +14,7 @@ chrome.action.onClicked.addListener((tab) => {
 });
 
 // adds a listener to tab change
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   // check for a URL in the changeInfo parameter (url is only added when it is changed)
   if (changeInfo.url) {
@@ -43,7 +44,8 @@ chrome.runtime.onMessage.addListener(async function (
   sendResponse
 ) {
   if (message.action === 'saveJob') {
-    response = await saveJob(message.formData);
+    console.log('saving job');
+    const response = await saveJob(message.formData);
     sendResponse(response);
   }
 
