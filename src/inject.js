@@ -120,6 +120,20 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       setTimeout(sendFormDataOnEasyApply, 500);
     }
   }
+  // ****************** New Code Block Starts Here ******************
+  else if (request.action === 'dismissJob') {
+    const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+    if (dismissButton) {
+      dismissButton.click();
+      console.log('Dismiss job button clicked.');
+      sendResponse({success: true, message: "Job dismissed successfully."});
+    } else {
+      console.error('Dismiss button not found.');
+      sendResponse({success: false, message: "Dismiss button not found."});
+    }
+    return true; // Indicates that the response is asynchronous
+  }
+  // ****************** New Code Block Ends Here ******************
 });
 
 if (window.location.href.includes('linkedin.com/jobs')) {
@@ -183,11 +197,22 @@ export async function sendFormDataOnEasyApply() {
 }
 
 export function saveJob(formData) {
-  chrome.runtime.sendMessage(
-    { action: 'saveJob', formData: formData },
-    function (response) {
-      // console.log('Data sent:', formData);
-      // console.log('Response:', response);
-    }
-  );
+  // Sending a message to the background script to save the job data
+  chrome.runtime.sendMessage({ action: 'saveJob', formData: formData }, function(response) {
+    // Optional logging for debugging purposes
+    // console.log('Data sent:', formData);
+    // console.log('Response:', response);
+    alert('line 203 inject.js')
+    const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+  if (dismissButton) {
+    dismissButton.click(); // Click the button if found
+    console.log('Dismiss job button clicked.'); // Log success
+  } else {
+    console.error('Dismiss button not found.'); // Log failure to find the button
+  }
+  });
+
+
+ 
 }
+

@@ -1,12 +1,17 @@
+The manifest.json file is used to identify the chrome extension. It configures it and gives it a name
+
+
 {
-  "manifest_version": 3,
-  "name": "JobApplicationTrakr",
+  "manifest_version": 3, --this is the most recent version.  Used version 3 because OAUTH 2 required manifest version 3. 
+  "name": "JobApplicationTrakr", 
   "version": "1.0.0",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg0fec3FiQX4EVGIs8davZV7M16XxDpzwCe6NJkqi7lDcfTrM3uduBn/spanMBBk8MYqeK836JLrszSz7d9WnM4YrgiHG4sd5tyuY0DW1aVxk9hqrj/1OuubtwU6CyZD7QaWnUx6ulhc6HCG/yw0ZmQ0FNWF+PPoM/Aswuuqk6+V37omcuBEO6K2cQ9ERrcb1cG81znCC4faHbLOszNUkoCcfYXhlxs1VmddHTqdr3N7YAaeTOK10QNBkWv3sMWd1khXb+VX/yk02GCcos4cs48AYl9tlDh4Ug0/Y2QIGkEG4giw46AgOkY6YW7y1g1wUQ45F1besnNb8R1QmkUP7kwIDAQAB",
+  --when you have Extension on the chrome store, it has its own unique identifier, but every upload it will update this idenfier, but this keeps the identifier the same. 
   "action": {
     "default_popup": "popup.html",
-    "default_title": "JobApplicationTrakr"
+    "default_title": "LinkedUp"
   },
+  --ON CLICK This is what will load. 
   "oauth2": {
     "client_id": "40510895582-6gg1iiips6aq3rf2kl1c50deg4nlsv46.apps.googleusercontent.com",
     "scopes": [
@@ -15,14 +20,14 @@
       "https://www.googleapis.com/auth/drive.readonly"
     ]
   },
+  --THIS IS Just boilerplate OAUTH Stuff. 
   "permissions": [
     "activeTab",
     "storage",
     "identity",
-    "scripting",
-    "tabs",
-    "<all_urls>"
+    "scripting"
   ],
+  --The premissions given 
   "host_permissions": [
     "https://www.linkedin.com/jobs/*",
     "https://www.indeed.com/*",
@@ -31,6 +36,7 @@
   "background": {
     "service_worker": "dist/background.bundle.js"
   },
+  --THIS it will alwaus run the value as a service_worker
   "content_scripts": [
     {
       "matches": [
@@ -42,5 +48,6 @@
         "dist/inject.bundle.js"
       ]
     }
+    --ON ANY OF THE AVBOVE MATCHES then use the following inject. Inject will load up our script on only those pages. 
   ]
 }
