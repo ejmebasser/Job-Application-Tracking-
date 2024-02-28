@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
   chrome.storage.local.get(
     Object.keys(settings.fields),
     async function (result) {
-      await settings.populateSheetList();
       settings.updateSettingsValues(result);
+      await settings.populateSheetList();
 
       if (!result.sheetId) {
         utils.toggleCogFunction();
