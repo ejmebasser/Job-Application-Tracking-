@@ -38,9 +38,7 @@
         "https://www.indeed.com/*",
         "https://www.glassdoor.com/*"
       ],
-      "js": [
-        "dist/inject.bundle.js"
-      ]
+      "js": ["dist/inject.bundle.js"]
     }
   ]
 }

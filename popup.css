@@ -5,10 +5,12 @@ body {
 }
 
 body hr {
-  width: 100%
+  width: 100%;
 }
 
-header, #form, footer {
+header,
+#form,
+footer {
   margin: 1em;
 }
 
@@ -37,7 +39,7 @@ header, #form, footer {
 }
 
 #main {
-  padding: 0 .5em;
+  padding: 0 0.5em;
 }
 
 #main ul {
@@ -48,7 +50,8 @@ header, #form, footer {
   flex-direction: column;
 }
 
-#main li, #main button {
+#main li,
+#main button {
   margin: 0.5em 0em;
   padding: 0;
   width: 100%;
@@ -65,5 +68,4 @@ header, #form, footer {
 #linkSheet {
   background: none;
   border: none;
-  
 }

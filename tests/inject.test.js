@@ -69,7 +69,7 @@ describe('inject.js', () => {
 
     it('should attach the MutationObserver to the apply button', async () => {
       const mutationObserver = jest.spyOn(window, 'MutationObserver');
-      window.MutationObserver.mockImplementation(() => ({observe: () => {}}));
+      window.MutationObserver.mockImplementation(() => ({ observe: () => {} }));
 
       await injectModule.sendFormDataOnEasyApply();
 

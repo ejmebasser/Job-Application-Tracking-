@@ -11,7 +11,7 @@ describe('background.js', () => {
       const tabId = 1;
       const target = {
         files: ['dist/inject.bundle.js'],
-        target: {tabId},
+        target: { tabId },
       };
       Background.injectScript(tabId);
 

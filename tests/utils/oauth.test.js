@@ -52,10 +52,10 @@ describe('OAuth', () => {
 
       expect(sheets).toBeDefined();
       expect(sheets).toEqual(
-          data.files.map((file) => ({
-            name: file.name,
-            id: file.id,
-          })),
+        data.files.map((file) => ({
+          name: file.name,
+          id: file.id,
+        }))
       );
     });
   });
@@ -77,7 +77,7 @@ describe('OAuth', () => {
 
       expect(sheetNames).toBeDefined();
       expect(sheetNames).toEqual(
-          expectedResult.sheets.map((sheet) => sheet.properties.title),
+        expectedResult.sheets.map((sheet) => sheet.properties.title)
       );
     });
   });

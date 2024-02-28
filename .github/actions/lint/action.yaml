@@ -25,7 +25,5 @@ runs:
       run: npm ci
 
     - name: Lint files
-      uses: wearerequired/eslint-action@v2
-      with:
-        eslint: true
-        prettier: true
+      shell: bash
+      run: npm run lint

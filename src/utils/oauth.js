@@ -33,7 +33,7 @@ export default class OAuth {
    */
   getAuthToken() {
     return new Promise((resolve, reject) => {
-      chrome.identity.getAuthToken({interactive: true}, function(token) {
+      chrome.identity.getAuthToken({ interactive: true }, function (token) {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError.message);
           reject(chrome.runtime.lastError.message);
@@ -58,20 +58,20 @@ export default class OAuth {
         Authorization: 'Bearer ' + this.authToken,
       },
     })
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          const files = data.files.map((file) => ({
-            name: file.name,
-            id: file.id,
-          }));
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        const files = data.files.map((file) => ({
+          name: file.name,
+          id: file.id,
+        }));
 
-          return files;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+        return files;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   /**
@@ -88,17 +88,17 @@ export default class OAuth {
         Authorization: 'Bearer ' + this.authToken,
       },
     })
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          const tabs = data.sheets.map((sheet) => sheet.properties.title);
+      .then((response) => {
+        return response.json();
+      })
+      .then((data) => {
+        const tabs = data.sheets.map((sheet) => sheet.properties.title);
 
-          return tabs;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+        return tabs;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   /**
@@ -108,7 +108,7 @@ export default class OAuth {
    * @return {object} The value of the cell.
    */
   async getCellValue(cell) {
-    let {sheetId, sheetName} = await chrome.storage.local.get([
+    let { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
@@ -117,14 +117,14 @@ export default class OAuth {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
 
     return fetch(url, {
-      headers: {Authorization: 'Bearer ' + this.authToken},
+      headers: { Authorization: 'Bearer ' + this.authToken },
     })
-        .then((response) => {
-          return response.json();
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      .then((response) => {
+        return response.json();
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 
   /**
@@ -135,7 +135,7 @@ export default class OAuth {
    * @return {object} The response from the Google Sheets API.
    */
   async appendValues(data) {
-    const {sheetId, sheetName} = await chrome.storage.local.get([
+    const { sheetId, sheetName } = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
@@ -162,16 +162,16 @@ export default class OAuth {
     return fetch(url, {
       method: 'POST',
       headers: {
-        'Authorization': 'Bearer ' + this.authToken,
+        Authorization: 'Bearer ' + this.authToken,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(resource),
     })
-        .then((response) => {
-          return response;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+      .then((response) => {
+        return response;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   }
 }

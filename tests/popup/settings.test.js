@@ -61,7 +61,7 @@ describe('Settings', () => {
       const createSheetLink = jest.spyOn(settings, 'createSheetLink');
 
       const sheetId = settings.settingsForm.querySelector(
-          'select[name="sheetId"]',
+        'select[name="sheetId"]'
       );
       sheetId.value = 'test-sheet1';
       settings.saveSettings();
@@ -81,7 +81,7 @@ describe('Settings', () => {
       const sendAutoSaveMessage = jest.spyOn(settings, 'sendAutoSaveMessage');
 
       const autoSave = settings.settingsForm.querySelector(
-          'input[name="autoSave"]',
+        'input[name="autoSave"]'
       );
       autoSave.checked = true;
       settings.saveSettings();
@@ -104,7 +104,7 @@ describe('Settings', () => {
       const url = settings.buildSheetURL(sheetId);
 
       expect(url).toBe(
-          'https://docs.google.com/spreadsheets/d/test-id/edit#gid=0',
+        'https://docs.google.com/spreadsheets/d/test-id/edit#gid=0'
       );
     });
   });
@@ -116,7 +116,7 @@ describe('Settings', () => {
         'https://docs.google.com/spreadsheets/d/test-id/edit#gid=0';
 
       expect(settings.sheetElement.innerHTML).toBe(
-          `<a href="${expectedUrl}" target="_blank">Open Google Sheet</a>`,
+        `<a href="${expectedUrl}" target="_blank">Open Google Sheet</a>`
       );
     });
   });
@@ -143,13 +143,13 @@ describe('Settings', () => {
       settings.updateSettingsValues(newSettings);
 
       const autoSave = settings.settingsForm.querySelector(
-          'input[name="autoSave"]',
+        'input[name="autoSave"]'
       );
       const sheetName = settings.settingsForm.querySelector(
-          'input[name="sheetName"]',
+        'input[name="sheetName"]'
       );
       const sheetId = settings.settingsForm.querySelector(
-          'select[name="sheetId"]',
+        'select[name="sheetId"]'
       );
 
       expect(autoSave.checked).toBe(true);
@@ -174,8 +174,8 @@ describe('Settings', () => {
 
   describe('populateSheetList function', () => {
     const sheetIds = [
-      {id: 'test-sheet-id1', name: 'idName1'},
-      {id: 'test-sheet-id2', name: 'idName2'},
+      { id: 'test-sheet-id1', name: 'idName1' },
+      { id: 'test-sheet-id2', name: 'idName2' },
     ];
 
     const sheetNames = ['test-sheet1', 'test-sheet2'];
@@ -198,11 +198,11 @@ describe('Settings', () => {
     it('should replace the options in the select element with the new sheet names', async () => {
       await settings.populateSheetList();
       const sheetId = settings.settingsForm.querySelector(
-          'select[name="sheetId"]',
+        'select[name="sheetId"]'
       );
 
       expect(sheetId.innerHTML).toBe(
-          '<option value="test-sheet-id1">idName1</option><option value="test-sheet-id2">idName2</option>',
+        '<option value="test-sheet-id1">idName1</option><option value="test-sheet-id2">idName2</option>'
       );
     });
   });
@@ -229,11 +229,11 @@ describe('Settings', () => {
       await settings.populateSheetNameList('test-id');
 
       const sheetName = settings.settingsForm.querySelector(
-          'input[name="sheetName"], select[name="sheetName"]',
+        'input[name="sheetName"], select[name="sheetName"]'
       );
 
       expect(sheetName.innerHTML).toBe(
-          `<option value="${sheetNames[0]}">${sheetNames[0]}</option><option value="${sheetNames[1]}">${sheetNames[1]}</option>`,
+        `<option value="${sheetNames[0]}">${sheetNames[0]}</option><option value="${sheetNames[1]}">${sheetNames[1]}</option>`
       );
     });
   });

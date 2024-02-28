@@ -67,7 +67,7 @@ export default class Utils {
     let timeoutId;
     let called = false; // Flag to track if the function has been called already
 
-    return function() {
+    return function () {
       const context = this;
       const args = arguments;
       if (!called) {
@@ -105,7 +105,7 @@ export default class Utils {
   }
 
   sendMessage(message, callback) {
-    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, message, callback);
     });
   }

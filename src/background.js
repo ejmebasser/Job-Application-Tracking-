@@ -38,20 +38,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
  *  Adds a listener for the 'saveJob' action.
  *  This will save the sheetURL to the chrome storage.
  */
-chrome.runtime.onMessage.addListener(async function (
-  message,
-  sender,
-  sendResponse
-) {
-  if (message.action === 'saveJob') {
-    console.log('saving job');
-    const response = await saveJob(message.formData);
-    sendResponse(response);
-  }
+chrome.runtime.onMessage.addListener(
+  async function (message, sender, sendResponse) {
+    if (message.action === 'saveJob') {
+      console.log('saving job');
+      const response = await saveJob(message.formData);
+      sendResponse(response);
+    }
 
-  // if the listener is an async function, it must return true
-  return true;
-});
+    // if the listener is an async function, it must return true
+    return true;
+  }
+);
 
 /**
  * This function initializes the OAuth object, for use in the background script.

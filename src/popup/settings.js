@@ -95,7 +95,7 @@ export default class Settings {
         default:
           value = value === null ? '' : value;
           inputField = this.settingsForm.querySelector(
-              `input[name="${key}"], select[name="${key}"]`,
+            `input[name="${key}"], select[name="${key}"]`
           );
           if (inputField) {
             inputField.value = value;
@@ -126,9 +126,9 @@ export default class Settings {
    */
   async populateSheetList() {
     const sheetInput = this.settingsForm.querySelector(
-        'input[name="sheetId"], select[name="sheetId"]',
+      'input[name="sheetId"], select[name="sheetId"]'
 
-        // THIS just chagnes the drop down from an input to a drop down selector.
+      // THIS just chagnes the drop down from an input to a drop down selector.
     );
     if (!sheetInput) {
       return;
@@ -150,9 +150,9 @@ export default class Settings {
       sheetSelector.appendChild(option);
     });
     // GETS ALL SHEETS FROM GOOGLE DRIVE
-    const defaultSheet = this.fields.sheetId ?
-      this.fields.sheetId :
-      files[0].id;
+    const defaultSheet = this.fields.sheetId
+      ? this.fields.sheetId
+      : files[0].id;
     this.populateSheetNameList(defaultSheet);
     sheetSelector.value = defaultSheet;
 
@@ -171,7 +171,7 @@ export default class Settings {
     const oauth = await this.getOauth();
 
     const sheetInput = this.settingsForm.querySelector(
-        'input[name="sheetName"], select[name="sheetName"]',
+      'input[name="sheetName"], select[name="sheetName"]'
     );
     const sheetSelector = document.createElement('select');
 
@@ -187,9 +187,9 @@ export default class Settings {
       option.text = sheet;
       sheetSelector.appendChild(option);
     });
-    sheetSelector.value = this.fields.sheetName ?
-      this.fields.sheetName :
-      sheetNames[0];
+    sheetSelector.value = this.fields.sheetName
+      ? this.fields.sheetName
+      : sheetNames[0];
 
     sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
   }
@@ -201,6 +201,6 @@ export default class Settings {
    */
   sendAutoSaveMessage(autoSave) {
     // console.log('Auto saving set to: ' + autoSave);
-    this.utils.sendMessage({action: 'autoSave', autoSave: autoSave});
+    this.utils.sendMessage({ action: 'autoSave', autoSave: autoSave });
   }
 }
