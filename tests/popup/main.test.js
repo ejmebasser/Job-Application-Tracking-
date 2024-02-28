@@ -10,7 +10,7 @@ import * as Main from '../../src/popup/main.js';
 describe('main.js tests', () => {
   describe('it runs necessary functions on load', () => {
     it('boots up', () => {
-      expect(true);
+      expect(true).toBe(true);
     });
   });
 });

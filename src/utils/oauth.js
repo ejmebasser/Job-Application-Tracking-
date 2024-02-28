@@ -18,7 +18,7 @@ export default class OAuth {
    * I really don't like this. It seems like a poor singleton attempt.
    * There is probably a better way to handle this.
    *
-   * @returns {OAuth} The OAuth object.
+   * @return {OAuth} The OAuth object.
    */
   async getOAuth() {
     this.authToken = await this.getAuthToken();
@@ -29,11 +29,11 @@ export default class OAuth {
   /**
    * Function to get the authToken from chrome.identity.
    *
-   * @returns {string} The OAuth token.
+   * @return {string} The OAuth token.
    */
   getAuthToken() {
     return new Promise((resolve, reject) => {
-      chrome.identity.getAuthToken({ interactive: true }, function (token) {
+      chrome.identity.getAuthToken({interactive: true}, function(token) {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError.message);
           reject(chrome.runtime.lastError.message);
@@ -47,7 +47,7 @@ export default class OAuth {
   /**
    * Get the list of Google Sheets, ordered by descending modified time.
    *
-   * @returns {array} The list of Google Sheets as an array of objects with name and id properties.
+   * @return {array} The list of Google Sheets as an array of objects with name and id properties.
    */
   getSheets() {
     const url =
@@ -58,27 +58,27 @@ export default class OAuth {
         Authorization: 'Bearer ' + this.authToken,
       },
     })
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        const files = data.files.map((file) => ({
-          name: file.name,
-          id: file.id,
-        }));
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          const files = data.files.map((file) => ({
+            name: file.name,
+            id: file.id,
+          }));
 
-        return files;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+          return files;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
   }
 
   /**
    * Gets the sheet names from a Google Sheet. The sheet names are the labelled tabs at the bottom of a Google Sheet.
    *
    * @param {string} spreadsheetId The id of the Google Sheet.
-   * @returns {array} The list of sheet names as an array of strings.
+   * @return {array} The list of sheet names as an array of strings.
    */
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
@@ -88,27 +88,27 @@ export default class OAuth {
         Authorization: 'Bearer ' + this.authToken,
       },
     })
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        const tabs = data.sheets.map((sheet) => sheet.properties.title);
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          const tabs = data.sheets.map((sheet) => sheet.properties.title);
 
-        return tabs;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+          return tabs;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
   }
 
   /**
    * Get a value from a particular cell in a Google Sheet.
    *
    * @param {string} cell The cell to get the value from. e.g. A1
-   * @returns {object} The value of the cell.
+   * @return {object} The value of the cell.
    */
   async getCellValue(cell) {
-    let { sheetId, sheetName } = await chrome.storage.local.get([
+    let {sheetId, sheetName} = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
@@ -117,14 +117,14 @@ export default class OAuth {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
 
     return fetch(url, {
-      headers: { Authorization: 'Bearer ' + this.authToken },
+      headers: {Authorization: 'Bearer ' + this.authToken},
     })
-      .then((response) => {
-        return response.json();
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          return response.json();
+        })
+        .catch((error) => {
+          console.error(error);
+        });
   }
 
   /**
@@ -132,10 +132,10 @@ export default class OAuth {
    * There may be a better way to map this data to the Google Sheet.
    *
    * @param {object} data The data to append to the Google Sheet.
-   * @returns {object} The response from the Google Sheets API.
+   * @return {object} The response from the Google Sheets API.
    */
   async appendValues(data) {
-    let { sheetId, sheetName } = await chrome.storage.local.get([
+    const {sheetId, sheetName} = await chrome.storage.local.get([
       'sheetId',
       'sheetName',
     ]);
@@ -162,16 +162,16 @@ export default class OAuth {
     return fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: 'Bearer ' + this.authToken,
+        'Authorization': 'Bearer ' + this.authToken,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(resource),
     })
-      .then((response) => {
-        return response;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        .then((response) => {
+          return response;
+        })
+        .catch((error) => {
+          console.error(error);
+        });
   }
 }

@@ -50,7 +50,7 @@ export default class Utils {
    * @param {string} buttonId The id of the button to remove.
    */
   removeButton(buttonId) {
-    var submitButton = document.querySelector(buttonId);
+    const submitButton = document.querySelector(buttonId);
     if (submitButton) {
       submitButton.remove();
     }
@@ -61,13 +61,13 @@ export default class Utils {
    *
    * @param {Function} func The function to throttle
    * @param {int} delay The delay in milliseconds
-   * @returns {func} function with throlling
+   * @return {func} function with throlling
    */
   throttle(func, delay) {
     let timeoutId;
     let called = false; // Flag to track if the function has been called already
 
-    return function () {
+    return function() {
       const context = this;
       const args = arguments;
       if (!called) {
@@ -84,7 +84,7 @@ export default class Utils {
    * Convert the form and its values to an object.
    *
    * @param {HTMLFormElement} form The form to convert to an object.
-   * @returns {object} The form data as an object.
+   * @return {object} The form data as an object.
    */
   formToObj(form) {
     const data = {};
@@ -105,7 +105,7 @@ export default class Utils {
   }
 
   sendMessage(message, callback) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, message, callback);
     });
   }

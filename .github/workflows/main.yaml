@@ -1,5 +1,7 @@
 name: Main Workflow
 
+define: &node-versions [21.x]
+
 on:
   push:
     branches: ['main']
@@ -7,11 +9,25 @@ on:
     branches: ['main']
 
 jobs:
-  test_and_build:
+  lint:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [21.x]
+        node-version: *node-versions
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Lint
+        uses: ./.github/actions/lint
+        with:
+          node-version: ${{ matrix.node-version }}
+
+  test_and_build:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: *node-versions
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2

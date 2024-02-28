@@ -9,13 +9,13 @@ export function injectScript(tabId) {
 }
 
 // Open the popup when the extension icon is clicked
-chrome.action.onClicked.addListener((tab) => {
+chrome.action.onClicked.addListener(() => {
   chrome.tabs.openPopup();
 });
 
 // adds a listener to tab change
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   // check for a URL in the changeInfo parameter (url is only added when it is changed)
   if (changeInfo.url) {
     // inject the script to the tab
@@ -55,9 +55,9 @@ chrome.runtime.onMessage.addListener(async function (
 
 /**
  * This function initializes the OAuth object, for use in the background script.
- * 
- * @returns {OAuth} The OAuth object.
- 
+ *
+ * @return {OAuth} The OAuth object.
+
  */
 export async function initializeOauth() {
   let oauth = new OAuth();
@@ -72,6 +72,6 @@ export async function saveJob(formData) {
   // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
-  alert('line 73 of background')
+  alert('line 73 of background');
   return response;
 }

@@ -1,7 +1,7 @@
 /**
  * Formats the current time as "MM/DD/YYYY HH:MM:SS".
  *
- * @returns {string} The formated date and time.
+ * @return {string} The formated date and time.
  */
 export function formatCurrentDateTime() {
   const now = new Date();
@@ -29,7 +29,7 @@ export function getURL(selector) {
  * Get the text from within a selected element. If the selector is not found, return an empty string.
  *
  * @param {text} selector The CSS selector to find the element.
- * @returns {string} The text of the current element.
+ * @return {string} The text of the current element.
  */
 export function getText(selector) {
   return document.querySelector(selector)?.textContent.trim() || '';
@@ -41,7 +41,7 @@ export function getText(selector) {
  * The keys in the urlMap object are used as RegEx patterns to match the current URL.
  *
  * @param {string} url The current URL of the job application page.
- * @returns {object} The parsed data from the URL.
+ * @return {object} The parsed data from the URL.
  */
 export function parseUrl(url) {
   const urlMap = {
@@ -122,14 +122,16 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
   // ****************** New Code Block Starts Here ******************
   else if (request.action === 'dismissJob') {
-    const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+    const dismissButton = document.querySelector(
+      '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+    );
     if (dismissButton) {
       dismissButton.click();
       console.log('Dismiss job button clicked.');
-      sendResponse({success: true, message: "Job dismissed successfully."});
+      sendResponse({ success: true, message: 'Job dismissed successfully.' });
     } else {
       console.error('Dismiss button not found.');
-      sendResponse({success: false, message: "Dismiss button not found."});
+      sendResponse({ success: false, message: 'Dismiss button not found.' });
     }
     return true; // Indicates that the response is asynchronous
   }
@@ -198,21 +200,22 @@ export async function sendFormDataOnEasyApply() {
 
 export function saveJob(formData) {
   // Sending a message to the background script to save the job data
-  chrome.runtime.sendMessage({ action: 'saveJob', formData: formData }, function(response) {
-    // Optional logging for debugging purposes
-    // console.log('Data sent:', formData);
-    // console.log('Response:', response);
-    alert('line 203 inject.js')
-    const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
-  if (dismissButton) {
-    dismissButton.click(); // Click the button if found
-    console.log('Dismiss job button clicked.'); // Log success
-  } else {
-    console.error('Dismiss button not found.'); // Log failure to find the button
-  }
-  });
-
-
- 
+  chrome.runtime.sendMessage(
+    { action: 'saveJob', formData: formData },
+    function (response) {
+      // Optional logging for debugging purposes
+      // console.log('Data sent:', formData);
+      // console.log('Response:', response);
+      // alert('line 203 inject.js')
+      const dismissButton = document.querySelector(
+        '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+      );
+      if (dismissButton) {
+        dismissButton.click(); // Click the button if found
+        console.log('Dismiss job button clicked.'); // Log success
+      } else {
+        console.error('Dismiss button not found.'); // Log failure to find the button
+      }
+    }
+  );
 }
-

@@ -38,29 +38,29 @@ export default class Settings {
    */
   saveSettings() {
     const values = this.utils.formToObj(this.settingsForm);
-//GRABBING THE VALUES OF THE SETTING FORM
+    // GRABBING THE VALUES OF THE SETTING FORM
     if (values.sheetId) {
       this.createSheetLink(values.sheetId);
-      //THIS IS THE LINK TO THE DOCUMENT WITH A PRESS OF A BUTTON
+      // THIS IS THE LINK TO THE DOCUMENT WITH A PRESS OF A BUTTON
     }
     this.storeSettingsValues(values);
-    //STORES IT IN STORAGE
+    // STORES IT IN STORAGE
     this.sendAutoSaveMessage(values.autoSave);
-    //THIS WORKS IN TANDEM WITH THE INJECT & BACKGROUND SCRIPT to signal if htey can save or not. 
+    // THIS WORKS IN TANDEM WITH THE INJECT & BACKGROUND SCRIPT to signal if htey can save or not.
 
     this.utils.toggleCogFunction();
-    //SWQITCHING BETWEEN TEH SETTINGS FORM AND THE JOB FORM. 
+    // SWQITCHING BETWEEN TEH SETTINGS FORM AND THE JOB FORM.
   }
 
   /**
    * Create the URL link to the Google Sheet using the sheetId.
    *
    * @param {string} sheetId
-   * @returns {string} The URL to the Google Sheet.
+   * @return {string} The URL to the Google Sheet.
    */
   buildSheetURL(sheetId) {
     return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/edit#gid=0';
-    //THE HYPER LINK TO THE SHEET. 
+    // THE HYPER LINK TO THE SHEET.
   }
 
   createSheetLink(sheetId) {
@@ -71,7 +71,7 @@ export default class Settings {
     link.target = '_blank';
     this.sheetElement.appendChild(link);
   }
-  //THIS IS THE HYPER LINK
+  // THIS IS THE HYPER LINK
 
   /**
    * Update the values of the settings fields from stored values.
@@ -79,7 +79,7 @@ export default class Settings {
    * @param {object} settings The settings object.
    */
   updateSettingsValues(settings) {
-    //THIS IS THE VALUES OF THE SETTINGS. THIS PULLS IN THE DATA FROM THE STORAGE and updates the setting form. 
+    // THIS IS THE VALUES OF THE SETTINGS. THIS PULLS IN THE DATA FROM THE STORAGE and updates the setting form.
     this.fields = settings;
 
     for (let [key, value] of Object.entries(settings)) {
@@ -95,7 +95,7 @@ export default class Settings {
         default:
           value = value === null ? '' : value;
           inputField = this.settingsForm.querySelector(
-            `input[name="${key}"], select[name="${key}"]`
+              `input[name="${key}"], select[name="${key}"]`,
           );
           if (inputField) {
             inputField.value = value;
@@ -112,7 +112,7 @@ export default class Settings {
    *
    * @param {object} settings The settings object.
    */
-  //JUST THE SAVE FUNCTION 
+  // JUST THE SAVE FUNCTION
   storeSettingsValues(settings) {
     chrome.storage.local.set(settings, (results) => {
       if (chrome.runtime.lastError) {
@@ -126,9 +126,9 @@ export default class Settings {
    */
   async populateSheetList() {
     const sheetInput = this.settingsForm.querySelector(
-      'input[name="sheetId"], select[name="sheetId"]'
+        'input[name="sheetId"], select[name="sheetId"]',
 
-      //THIS just chagnes the drop down from an input to a drop down selector. 
+        // THIS just chagnes the drop down from an input to a drop down selector.
     );
     if (!sheetInput) {
       return;
@@ -141,7 +141,7 @@ export default class Settings {
       sheetSelector.setAttribute(attr.name, attr.value);
     }
 
-    let oauth = await this.getOauth();
+    const oauth = await this.getOauth();
     const files = await oauth.getSheets();
     files.forEach((sheet) => {
       const option = document.createElement('option');
@@ -149,10 +149,10 @@ export default class Settings {
       option.text = sheet.name;
       sheetSelector.appendChild(option);
     });
-//GETS ALL SHEETS FROM GOOGLE DRIVE
-    const defaultSheet = this.fields.sheetId
-      ? this.fields.sheetId
-      : files[0].id;
+    // GETS ALL SHEETS FROM GOOGLE DRIVE
+    const defaultSheet = this.fields.sheetId ?
+      this.fields.sheetId :
+      files[0].id;
     this.populateSheetNameList(defaultSheet);
     sheetSelector.value = defaultSheet;
 
@@ -168,10 +168,10 @@ export default class Settings {
    * @param {*} spreadsheetId
    */
   async populateSheetNameList(spreadsheetId) {
-    let oauth = await this.getOauth();
+    const oauth = await this.getOauth();
 
     const sheetInput = this.settingsForm.querySelector(
-      'input[name="sheetName"], select[name="sheetName"]'
+        'input[name="sheetName"], select[name="sheetName"]',
     );
     const sheetSelector = document.createElement('select');
 
@@ -187,9 +187,9 @@ export default class Settings {
       option.text = sheet;
       sheetSelector.appendChild(option);
     });
-    sheetSelector.value = this.fields.sheetName
-      ? this.fields.sheetName
-      : sheetNames[0];
+    sheetSelector.value = this.fields.sheetName ?
+      this.fields.sheetName :
+      sheetNames[0];
 
     sheetInput.parentNode.replaceChild(sheetSelector, sheetInput);
   }
@@ -201,6 +201,6 @@ export default class Settings {
    */
   sendAutoSaveMessage(autoSave) {
     // console.log('Auto saving set to: ' + autoSave);
-    this.utils.sendMessage({ action: 'autoSave', autoSave: autoSave });
+    this.utils.sendMessage({action: 'autoSave', autoSave: autoSave});
   }
 }

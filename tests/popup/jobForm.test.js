@@ -79,10 +79,10 @@ describe('JobForm', () => {
       jobForm.updateForm(formData);
 
       expect(jobElement.querySelector('input[name="jobTitle"]').value).toBe(
-        formData.jobTitle
+          formData.jobTitle,
       );
       expect(jobElement.querySelector('input[name="company"]').value).toBe(
-        formData.company
+          formData.company,
       );
     });
   });
