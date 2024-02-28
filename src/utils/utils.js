@@ -104,9 +104,48 @@ export default class Utils {
     return data;
   }
 
+  /**
+   * Send a message to the tab.
+   *
+   * @param {Object} message The message to send.
+   * @param {Function} callback A callback function to handle the response.
+   */
   sendMessage(message, callback) {
+    console.log('sending message:', message);
+    console.log('callback:', callback);
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, message, callback);
+      if (tabs && tabs.length > 0) {
+        chrome.tabs.sendMessage(tabs[0].id, message, (response) => {
+          if (chrome.runtime.lastError) {
+            console.error('Error sending message:', chrome.runtime.lastError);
+          } else {
+            if (callback && typeof callback === 'function') {
+              callback(response);
+            }
+          }
+        });
+      } else {
+        console.error('No active tabs found.');
+      }
+    });
+  }
+
+  /**
+   * Get a value from chrome.storage.sync.
+   *
+   * @param {string} key The key to get the value of.
+   * @return {Promise} The value of the key.
+   */
+  getValueFromSync(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.get([key], function (result) {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+          reject(chrome.runtime.lastError.message);
+        } else {
+          resolve(result[key]);
+        }
+      });
     });
   }
 }

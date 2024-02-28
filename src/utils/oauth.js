@@ -108,7 +108,7 @@ export default class OAuth {
    * @return {object} The value of the cell.
    */
   async getCellValue(cell) {
-    let { sheetId, sheetName } = await chrome.storage.local.get([
+    const { sheetId, sheetName } = await chrome.storage.sync.get([
       'sheetId',
       'sheetName',
     ]);
@@ -135,7 +135,7 @@ export default class OAuth {
    * @return {object} The response from the Google Sheets API.
    */
   async appendValues(data) {
-    const { sheetId, sheetName } = await chrome.storage.local.get([
+    const { sheetId, sheetName } = await chrome.storage.sync.get([
       'sheetId',
       'sheetName',
     ]);

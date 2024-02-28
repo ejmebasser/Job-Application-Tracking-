@@ -28,23 +28,23 @@ describe('Settings', () => {
     sheetElement.appendChild(document.createElement('span'));
 
     settings = new Settings(jobForm, settingsForm, sheetElement);
-    oauth = await settings.getOauth();
+    oauth = await settings.initializeOAuth();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('getOauth function', () => {
+  describe('initializeOauth function', () => {
     it('should get the OAuth token', async () => {
-      const oauth = await settings.getOauth();
+      const oauth = await settings.initializeOAuth();
 
       expect(oauth).toBeDefined();
     });
 
     it('should return the existing OAuth token', async () => {
       settings.oauth = 'test-token';
-      const oauth = await settings.getOauth();
+      const oauth = await settings.initializeOAuth();
 
       expect(oauth).toBe('test-token');
     });
@@ -168,7 +168,7 @@ describe('Settings', () => {
       const returnFunc = jest.fn();
       settings.storeSettingsValues(newSettings);
 
-      expect(chrome.storage.local.set).toHaveBeenCalled();
+      expect(chrome.storage.sync.set).toHaveBeenCalled();
     });
   });
 
@@ -180,7 +180,7 @@ describe('Settings', () => {
 
     const sheetNames = ['test-sheet1', 'test-sheet2'];
     beforeEach(async () => {
-      oauth = await settings.getOauth();
+      oauth = await settings.initializeOAuth();
 
       oauth.getSheets = jest.fn().mockResolvedValue(sheetIds);
 
@@ -211,7 +211,7 @@ describe('Settings', () => {
     const sheetNames = ['test-sheet1', 'test-sheet2'];
 
     beforeEach(async () => {
-      oauth = await settings.getOauth();
+      oauth = await settings.initializeOAuth();
 
       oauth.getSheetNames = jest.fn().mockResolvedValue(sheetNames);
     });

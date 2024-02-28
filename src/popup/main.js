@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   );
 
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     Object.keys(settings.fields),
     async function (result) {
       settings.updateSettingsValues(result);
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function () {
           );
           if (dismissButton) {
             dismissButton.click();
-            console.log('Dismiss job button clicked.');
+            // console.log('Dismiss job button clicked.');
           } else {
             console.error('Dismiss button not found.');
           }
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .addEventListener('click', function () {
       // Show the first alert with the current time
       const currentTime = new Date().toLocaleTimeString();
-      alert('Clicked at ' + currentTime);
+      // alert('Clicked at ' + currentTime);
 
       // Use the Chrome scripting API to execute the script in the active tab to get the current URL
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -123,43 +123,43 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (jobId) {
           // Show the second alert with the jobID
-          alert('Job ID: ' + jobId);
+          // alert('Job ID: ' + jobId);
 
-          // Retrieve the current 'jobsApplied' array from chrome.storage.local
-          chrome.storage.local.get(['jobsApplied'], function (result) {
+          // Retrieve the current 'jobsApplied' array from chrome.storage.sync
+          chrome.storage.sync.get(['jobsApplied'], function (result) {
             const jobsApplied = result.jobsApplied || [];
 
             // Alert the current 'jobsApplied' array before adding the new jobID
-            alert(
-              'Current saved jobs: ' +
-                (jobsApplied.length > 0 ? jobsApplied.join(', ') : 'None')
-            );
+            // alert(
+            //   'Current saved jobs: ' +
+            //     (jobsApplied.length > 0 ? jobsApplied.join(', ') : 'None')
+            // );
 
             if (!jobsApplied.includes(jobId)) {
               jobsApplied.push(jobId);
 
-              // Save the updated 'jobsApplied' array back to chrome.storage.local
-              chrome.storage.local.set(
+              // Save the updated 'jobsApplied' array back to chrome.storage.sync
+              chrome.storage.sync.set(
                 { jobsApplied: jobsApplied },
                 function () {
-                  console.log('Job ID added to jobsApplied:', jobId);
-
+                  // console.log('Job ID added to jobsApplied:', jobId);
                   // Alert the updated 'jobsApplied' array after adding the new jobID
-                  alert('Updated jobs list: ' + jobsApplied.join(', '));
+                  // alert('Updated jobs list: ' + jobsApplied.join(', '));
                 }
               );
             } else {
               // Alert that the job ID already exists and cancel out of this function with a specific message
-              alert(
-                'Will not load because you have already applied to this position. Job ID ' +
-                  jobId +
-                  ' already exists in your list.'
-              );
+              // alert(
+              //   'Will not load because you have already applied to this position. Job ID ' +
+              //     jobId +
+              //     ' already exists in your list.'
+              // );
               return; // Cancel out of the function if the jobID already exists
             }
           });
         } else {
-          alert('Job ID not found.');
+          // alert('Job ID not found.');
+          console.error('Job ID not found.');
         }
       });
     });

@@ -25,7 +25,7 @@ export default class JobForm {
    *
    * @return {OAuth} The OAuth object.
    */
-  async getOauth() {
+  async initializeOAuth() {
     if (!this.oauth) {
       const oauth = new OAuth();
       this.oauth = await oauth.getOAuth();
@@ -53,14 +53,14 @@ export default class JobForm {
    * Handles what happens when we submit data to the Google Sheet.
    */
   async handleSubmit() {
-    alert('line 56, jobform.js');
+    // alert('line 56, jobform.js');
     const formJson = this.utils.formToObj(this.form);
 
     const saveButtonId = '#saveData';
     const saveButton = this.form.querySelector(saveButtonId);
     saveButton.textContent = 'Submitting...';
 
-    const oauth = await this.getOauth();
+    const oauth = await this.initializeOAuth();
     // console.log(oauth);
 
     // submit the form data to Google Apps Script
@@ -86,18 +86,18 @@ export default class JobForm {
         this.utils.appendMessage('#result', 'Error submitting data');
         saveButton.textContent = 'Save Data';
       });
-    alert('line 89, jobform.js');
+    // alert('line 89, jobform.js');
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
       chrome.tabs.sendMessage(
         tabs[0].id,
         { action: 'dismissJob' },
         function (response) {
           if (response && response.result === 'success') {
-            console.log('Dismiss job action was successful.');
+            // console.log('Dismiss job action was successful.');
           } else {
-            console.log(
-              'Dismiss job action failed or the content script is not active.'
-            );
+            // console.log(
+            //   'Dismiss job action failed or the content script is not active.'
+            // );
           }
         }
       );
@@ -109,7 +109,7 @@ export default class JobForm {
    * It gets the value from the Google Sheet cell H1.
    */
   async fetchTotalJobsApplied() {
-    const oauth = await this.getOauth();
+    const oauth = await this.initializeOAuth();
     oauth
       .getCellValue('H1')
       .then((data) => {
@@ -129,7 +129,7 @@ export default class JobForm {
    * It gets the value from the Google Sheet cell J1.
    */
   async fetchTotalJobsAppliedToday() {
-    const oauth = await this.getOauth();
+    const oauth = await this.initializeOAuth();
     oauth
       .getCellValue('J1')
       .then((data) => {
@@ -147,15 +147,14 @@ export default class JobForm {
   /**
    * Handles the load data button click event.
    * This will send the loadData action to the content script.
-   *
-   * @param {object} tabs The tabs object from the chrome API.
    */
-  loadData(tabs) {
+  loadData() {
     // There is a bit of tricky scoping with this within this function.
     // We are going to use another variable to reference this to avoid the scoping issue.
     const jobForm = this;
 
     this.utils.sendMessage({ action: 'loadData' }, function (response) {
+      console.log('loadData response:', response);
       if (response) {
         jobForm.updateForm(response);
         // alert('line 144 triggered from jobForm.js')

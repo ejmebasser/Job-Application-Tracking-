@@ -54,16 +54,16 @@ describe('JobForm', () => {
     jobForm.utils.appendMessage = jest.fn();
   });
 
-  describe('getOauth function', () => {
+  describe('initializeOAuth function', () => {
     it('should get the OAuth token', async () => {
-      const oauth = await jobForm.getOauth();
+      const oauth = await jobForm.initializeOAuth();
 
       expect(oauth).toBeDefined();
     });
 
     it('should return the existing OAuth token', async () => {
       jobForm.oauth = 'test-token';
-      const oauth = await jobForm.getOauth();
+      const oauth = await jobForm.initializeOAuth();
 
       expect(oauth).toBe('test-token');
     });
@@ -128,7 +128,7 @@ describe('JobForm', () => {
 
   describe('fetchTotalJobsApplied function', () => {
     beforeEach(async () => {
-      oauth = await jobForm.getOauth();
+      oauth = await jobForm.initializeOAuth();
       oauth.getCellValues = jest.fn().mockResolvedValue({ values: [['1']] });
     });
     it('should fetch the total number of jobs applied', async () => {

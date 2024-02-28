@@ -24,7 +24,7 @@ export default class Settings {
     this.fields = this.utils.formToObj(settingsForm);
   }
 
-  async getOauth() {
+  async initializeOAuth() {
     if (!this.oauth) {
       const oauth = new OAuth();
       this.oauth = await oauth.getOAuth();
@@ -45,7 +45,8 @@ export default class Settings {
     }
     this.storeSettingsValues(values);
     // STORES IT IN STORAGE
-    this.sendAutoSaveMessage(values.autoSave);
+    this.sendAutoSettingMessage('autoSave', values.autoSave);
+    this.sendAutoSettingMessage('autoHide', values.autoHide);
     // THIS WORKS IN TANDEM WITH THE INJECT & BACKGROUND SCRIPT to signal if htey can save or not.
 
     this.utils.toggleCogFunction();
@@ -114,7 +115,7 @@ export default class Settings {
    */
   // JUST THE SAVE FUNCTION
   storeSettingsValues(settings) {
-    chrome.storage.local.set(settings, (results) => {
+    chrome.storage.sync.set(settings, (results) => {
       if (chrome.runtime.lastError) {
         console.error(chrome.runtime.lastError);
       }
@@ -141,7 +142,7 @@ export default class Settings {
       sheetSelector.setAttribute(attr.name, attr.value);
     }
 
-    const oauth = await this.getOauth();
+    const oauth = await this.initializeOAuth();
     const files = await oauth.getSheets();
     files.forEach((sheet) => {
       const option = document.createElement('option');
@@ -168,7 +169,7 @@ export default class Settings {
    * @param {*} spreadsheetId
    */
   async populateSheetNameList(spreadsheetId) {
-    const oauth = await this.getOauth();
+    const oauth = await this.initializeOAuth();
 
     const sheetInput = this.settingsForm.querySelector(
       'input[name="sheetName"], select[name="sheetName"]'
@@ -195,12 +196,12 @@ export default class Settings {
   }
 
   /**
-   * Send a message to the tab to set the autoSave value.
+   * Send a message to the tab to set an auto setting value.
    *
-   * @param {boolean} autoSave whether to auto save the form
+   * @param {string} setting
+   * @param {boolean} value
    */
-  sendAutoSaveMessage(autoSave) {
-    // console.log('Auto saving set to: ' + autoSave);
-    this.utils.sendMessage({ action: 'autoSave', autoSave: autoSave });
+  sendAutoSettingMessage(setting, value) {
+    this.utils.sendMessage({ action: setting, value: value });
   }
 }

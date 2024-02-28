@@ -8,30 +8,57 @@ export function injectScript(tabId) {
   });
 }
 
-// Open the popup when the extension icon is clicked
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.openPopup();
-});
+/**
+ * Gets the current tab ID.
+ *
+ * @return {number} The current tab ID.
+ */
+async function getCurrentTabId() {
+  let [response] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  console.log('response:', response);
+  return response.id;
+}
 
-// adds a listener to tab change
+/**
+ * Function to load when the page has completed loading.
+ */
+async function onLoad() {
+  const tabId = await getCurrentTabId();
+  // console.log('tabId:', tabId);
+  chrome.storage.sync.get(['autoSave', 'autoHide'], (result) => {
+    // console.log('autoSave:', result.autoSave);
+    if (result.autoSave) {
+      chrome.tabs.sendMessage(tabId, {
+        action: 'autoSave',
+        autoSave: result.autoSave,
+      });
+    }
 
+    if (result.autoHide) {
+      chrome.tabs.sendMessage(tabId, {
+        action: 'autoHide',
+        autoHide: result.autoHide,
+      });
+    }
+  });
+}
+
+// listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   // check for a URL in the changeInfo parameter (url is only added when it is changed)
   if (changeInfo.url) {
     // inject the script to the tab
     injectScript(tabId);
+    onLoad();
   }
+});
 
-  if (changeInfo.status === 'complete') {
-    chrome.storage.local.get(['autoSave'], (result) => {
-      if (result.autoSave) {
-        chrome.tabs.sendMessage(tabId, {
-          action: 'autoSave',
-          autoSave: result.autoSave,
-        });
-      }
-    });
-  }
+// Open the popup when the extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.openPopup();
 });
 
 /**
@@ -40,10 +67,16 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
  */
 chrome.runtime.onMessage.addListener(
   async function (message, sender, sendResponse) {
+    // console.log('message:', message);
     if (message.action === 'saveJob') {
-      console.log('saving job');
+      // console.log('saving job');
       const response = await saveJob(message.formData);
       sendResponse(response);
+    }
+
+    if (message.action === 'ready') {
+      // console.log('inject ready');
+      onLoad();
     }
 
     // if the listener is an async function, it must return true
@@ -52,7 +85,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 /**
- * This function initializes the OAuth object, for use in the background script.
+ * Initializes the OAuth object, for use in the background script.
  *
  * @return {OAuth} The OAuth object.
 
@@ -64,12 +97,18 @@ export async function initializeOauth() {
   return oauth;
 }
 
+/**
+ * Saves the form data to the Google Sheet.
+ *
+ * @param {Object} formData The form data to be saved to the Google Sheet.
+ * @return {Object} The response from the appendValues method.
+ */
 export async function saveJob(formData) {
   const oauth = await initializeOauth();
   // console.log('saving job');
   // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
-  alert('line 73 of background');
+  // alert('line 73 of background');
   return response;
 }
