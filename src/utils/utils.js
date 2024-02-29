@@ -111,8 +111,8 @@ export default class Utils {
    * @param {Function} callback A callback function to handle the response.
    */
   sendMessage(message, callback) {
-    console.log('sending message:', message);
-    console.log('callback:', callback);
+    // console.log('sending message:', message);
+    // console.log('callback:', callback);
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs.length > 0) {
         chrome.tabs.sendMessage(tabs[0].id, message, (response) => {

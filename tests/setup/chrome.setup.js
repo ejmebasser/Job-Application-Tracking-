@@ -28,7 +28,7 @@ global.chrome = {
     executeScript: jest.fn((tabId) => {}),
   },
   storage: {
-    local: {
+    sync: {
       get: jest.fn().mockImplementation((keys, callback) => {
         const store = {
           sheetId: 'test-sheet-id',

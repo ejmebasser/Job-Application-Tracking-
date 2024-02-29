@@ -78,7 +78,10 @@ describe('Settings', () => {
     });
 
     it('should send a message to the tab if autoSave is true', () => {
-      const sendAutoSaveMessage = jest.spyOn(settings, 'sendAutoSaveMessage');
+      const sendAutoSaveMessage = jest.spyOn(
+        settings,
+        'sendAutoSettingMessage'
+      );
 
       const autoSave = settings.settingsForm.querySelector(
         'input[name="autoSave"]'
@@ -86,7 +89,10 @@ describe('Settings', () => {
       autoSave.checked = true;
       settings.saveSettings();
 
-      expect(sendAutoSaveMessage).toHaveBeenCalled();
+      expect(sendAutoSaveMessage).toHaveBeenCalledWith(
+        'autoSave',
+        autoSave.checked
+      );
     });
 
     it('should toggle the cog function', () => {
@@ -238,16 +244,17 @@ describe('Settings', () => {
     });
   });
 
-  describe('sendAutoSaveMessage function', () => {
+  describe('sendAutoSettingMessage function', () => {
     it('should call the sendMessage function', () => {
       const sendMessage = jest.spyOn(settings.utils, 'sendMessage');
 
+      const setting = 'autoSave';
       const autoSave = true;
-      settings.sendAutoSaveMessage(autoSave);
+      settings.sendAutoSettingMessage(setting, autoSave);
 
       expect(sendMessage).toHaveBeenCalledWith({
-        action: 'autoSave',
-        autoSave: autoSave,
+        action: setting,
+        value: autoSave,
       });
     });
   });

@@ -4,6 +4,8 @@ let savedApplication = false;
 let hideListener;
 let observer;
 
+const loadDelay = 1000;
+
 // maybe we want to parse the url and set a bunch of variables for use in all the scripts
 // that way functions can just call something like 'pageData.dismissSelector'
 
@@ -34,9 +36,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 if (document.readyState === 'complete') {
-  onLoad();
+  setTimeout(onLoad(), loadDelay);
 } else {
-  window.addEventListener('load', onLoad);
+  window.addEventListener('load', () => {
+    setTimeout(onLoad, loadDelay);
+  });
 }
 
 /**
@@ -102,7 +106,7 @@ function dismissAlreadyApplied(
  * @param {boolean} autoSaveValue
  */
 function handleAutoSave(autoSaveValue) {
-  // // console.log('Auto save:', autoSaveValue);
+  // console.log('Auto save:', autoSaveValue);
   autoSave = autoSaveValue;
   if (!savedApplication && autoSave) {
     sendFormDataOnEasyApply();
@@ -132,16 +136,16 @@ function handleScroll() {
  * Sets the autoHide value, and connects or disconnects automatically hiding jobs.
  */
 function handleAutoHide(autoHideValue) {
-  console.log('Auto hide:', autoHideValue);
+  // console.log('Auto hide:', autoHideValue);
   autoHide = autoHideValue;
 
   let scrollElement = document.querySelector('.jobs-search-results-list');
 
-  console.log('scrollElement:', scrollElement);
+  // console.log('scrollElement:', scrollElement);
   if (autoHide && scrollElement) {
-    setTimeout(handleScroll, 5000);
+    handleScroll();
     // console.log('Adding scroll listener.');
-    setTimeout(scrollElement.addEventListener('scroll', handleScroll), 1000);
+    scrollElement.addEventListener('scroll', handleScroll);
   } else if (scrollElement) {
     // console.log('Removing scroll listener.');
     scrollElement.removeEventListener('scroll', handleScroll);

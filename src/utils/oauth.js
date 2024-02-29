@@ -108,7 +108,7 @@ export default class OAuth {
    * @return {object} The value of the cell.
    */
   async getCellValue(cell) {
-    const { sheetId, sheetName } = await chrome.storage.sync.get([
+    let { sheetId, sheetName } = await chrome.storage.sync.get([
       'sheetId',
       'sheetName',
     ]);
