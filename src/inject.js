@@ -119,7 +119,7 @@ function handleScroll() {
     '.job-card-container__footer-item .tvm__text';
   const hideSelector = 'button[aria-label="Dismiss job"]';
   const appliedParentSelector = '.job-card-container';
-  console.log('handleScroll');
+  // console.log('handleScroll');
 
   dismissAlreadyApplied(
     appliedIndicatorSelector,
@@ -131,23 +131,19 @@ function handleScroll() {
 /**
  * Sets the autoHide value, and connects or disconnects automatically hiding jobs.
  */
-function handleAutoHide(autoHideValue, scrollElement) {
+function handleAutoHide(autoHideValue) {
   console.log('Auto hide:', autoHideValue);
   autoHide = autoHideValue;
 
-  // scrollElement = document.querySelector('.scaffold-layout__list-container');
+  let scrollElement = document.querySelector('.jobs-search-results-list');
 
-  if (!scrollElement) {
-    scrollElement = window;
-  }
-
-  // scrolling isn't working, let me see if I can just get it to run without scrolling
-  if (autoHide) {
+  console.log('scrollElement:', scrollElement);
+  if (autoHide && scrollElement) {
     setTimeout(handleScroll, 5000);
-    console.log('Adding scroll listener.');
-    scrollElement.addEventListener('scroll', handleScroll);
-  } else {
-    console.log('Removing scroll listener.');
+    // console.log('Adding scroll listener.');
+    setTimeout(scrollElement.addEventListener('scroll', handleScroll), 1000);
+  } else if (scrollElement) {
+    // console.log('Removing scroll listener.');
     scrollElement.removeEventListener('scroll', handleScroll);
   }
 }
