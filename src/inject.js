@@ -1,9 +1,8 @@
 let autoSave = false;
 let autoHide = false;
-let savedApplication = false;
-let hideListener;
 let observer;
 
+const appliedJobs = [];
 const loadDelay = 1000;
 
 // maybe we want to parse the url and set a bunch of variables for use in all the scripts
@@ -29,24 +28,44 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       );
       response = dismissJob(dismissButton);
       break;
+    case 'tabUpdated':
+      reset();
+      break;
   }
   sendResponse(response);
 
   return true;
 });
 
+function reset() {
+  autoSave = false;
+  autoHide = false;
+
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+
+  delayedLoad();
+}
+
 if (document.readyState === 'complete') {
-  setTimeout(onLoad(), loadDelay);
+  delayedLoad();
 } else {
   window.addEventListener('load', () => {
-    setTimeout(onLoad, loadDelay);
+    delayedLoad();
   });
+}
+
+function delayedLoad() {
+  setTimeout(onLoad, loadDelay);
 }
 
 /**
  * Function to coordinate background and inject scripts.
  */
 function onLoad() {
+  // console.log('page loading');
   sendReady();
 
   // We will set it here to disconnect the autosave if there is one,
@@ -108,7 +127,7 @@ function dismissAlreadyApplied(
 function handleAutoSave(autoSaveValue) {
   // console.log('Auto save:', autoSaveValue);
   autoSave = autoSaveValue;
-  if (!savedApplication && autoSave) {
+  if (autoSave) {
     sendFormDataOnEasyApply();
   }
 
@@ -176,53 +195,63 @@ function dismissJob(dismissButton) {
  */
 export async function sendFormDataOnEasyApply() {
   // Identify the classes to look for
-  const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';
   const applyDivClass = '.jobs-s-apply';
+  const easyApplyButtonClass = 'jobs-apply-button--top-card';
   const postApplyClass = 'artdeco-inline-feedback--success';
 
   // Get the elements
-  const easyApplyButton = document.querySelector(easyApplyButtonClass);
   const jobElement = document.querySelector(applyDivClass);
 
+  const pageMap = parseUrl(window.location.href);
+
+  // console.log('jobElement:', jobElement);
   if (
     !observer &&
-    jobElement // If the job element is found
-    // && easyApplyButton.innerText.toLowerCase() === 'easy apply'
+    jobElement && // If the job element is found
+    !appliedJobs.includes(pageMap.url)
   ) {
     // Easy apply has been found
     // console.log('Easy apply found!');
-
+    // console.log('creating observer');
     observer = new MutationObserver((mutations, mutationObserver) => {
+      // console.log('Mutation observed.', mutations);
+      let easyApplyFound = false;
+      let changeToApplyFound = false;
       for (const mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        if (mutation.type === 'childList') {
           for (const node of mutation.addedNodes) {
             if (
               node.nodeType === 1 &&
               node.classList.contains(postApplyClass)
             ) {
-              // Now we need to send this to the Google Sheet.
-              savedApplication = true;
-
-              const pageMap = parseUrl(window.location.href);
-              saveJob(pageMap);
-
-              // I was trying to debug why I sometimes get two job saves at a time
-              // I am preserving this here as I think it may be due to multiple mutations,
-              // but I stopped observing the behavior during debugging.
-              // console.log(
-              //   'Application submitted from mutation on:',
-              //   mutationObserver
-              // );
-
-              observer.disconnect();
+              changeToApplyFound = true;
+            }
+          }
+          for (const node of mutation.removedNodes) {
+            if (
+              node.nodeType === 1 &&
+              node.classList.contains(easyApplyButtonClass)
+            ) {
+              easyApplyFound = true;
             }
           }
         }
+      }
+
+      if (easyApplyFound && changeToApplyFound) {
+        // console.log('Easy apply found and change to apply found.');
+        saveJob(pageMap);
+        appliedJobs.push(pageMap.url);
+
+        // console.log('Disconnecting observer.');
+        observer.disconnect();
+        // console.log('Observer disconnected.');
       }
     });
     const config = { childList: true, subtree: true };
 
     observer.observe(jobElement, config);
+    // console.log('Observer connected.', observer);
   }
 }
 
@@ -236,10 +265,17 @@ export function saveJob(formData) {
   chrome.runtime.sendMessage(
     { action: 'saveJob', formData: formData },
     function (response) {
-      // console.log('response:', response);
-      // if (response.ok && autoHide) {
-      //   dismissJob();
-      // }
+      // console.log('saveJob response:', response);
+      if (autoHide) {
+        // we will assume that the job was saved successfully
+        // The page reloads before we get a response
+        // if (response.ok && autoHide) {
+        // console.log('dismissJob');
+        const dismissButton = document.querySelector(
+          '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+        );
+        dismissJob(dismissButton);
+      }
     }
   );
 }
