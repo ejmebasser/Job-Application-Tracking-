@@ -1,9 +1,10 @@
 let autoSave = false;
 let autoHide = false;
+let savedApplication = false;
 let observer;
 
 const appliedJobs = [];
-const loadDelay = 1000;
+const LOAD_DELAY = 1000;
 
 // maybe we want to parse the url and set a bunch of variables for use in all the scripts
 // that way functions can just call something like 'pageData.dismissSelector'
@@ -58,7 +59,7 @@ if (document.readyState === 'complete') {
 }
 
 function delayedLoad() {
-  setTimeout(onLoad, loadDelay);
+  setTimeout(onLoad, LOAD_DELAY);
 }
 
 /**
@@ -196,62 +197,62 @@ function dismissJob(dismissButton) {
 export async function sendFormDataOnEasyApply() {
   // Identify the classes to look for
   const applyDivClass = '.jobs-s-apply';
-  const easyApplyButtonClass = 'jobs-apply-button--top-card';
   const postApplyClass = 'artdeco-inline-feedback--success';
 
   // Get the elements
   const jobElement = document.querySelector(applyDivClass);
 
-  const pageMap = parseUrl(window.location.href);
+  const MUTATION_DELAY = 2;
+  const currentUrl = window.location.href;
 
   // console.log('jobElement:', jobElement);
-  if (
-    !observer &&
-    jobElement && // If the job element is found
-    !appliedJobs.includes(pageMap.url)
-  ) {
-    // Easy apply has been found
-    // console.log('Easy apply found!');
-    // console.log('creating observer');
+  if (!observer && jobElement) {
+    // Initialize the observer only if it hasn't been initialized and the job element is found
+
+    // Debounce timer variable declaration
+
     observer = new MutationObserver((mutations, mutationObserver) => {
-      // console.log('Mutation observed.', mutations);
-      let easyApplyFound = false;
-      let changeToApplyFound = false;
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList') {
-          for (const node of mutation.addedNodes) {
-            if (
-              node.nodeType === 1 &&
-              node.classList.contains(postApplyClass)
-            ) {
-              changeToApplyFound = true;
-            }
-          }
-          for (const node of mutation.removedNodes) {
-            if (
-              node.nodeType === 1 &&
-              node.classList.contains(easyApplyButtonClass)
-            ) {
-              easyApplyFound = true;
-            }
-          }
-        }
-      }
+      // Clear the debounce timer on each mutation
 
-      if (easyApplyFound && changeToApplyFound) {
-        // console.log('Easy apply found and change to apply found.');
-        saveJob(pageMap);
-        appliedJobs.push(pageMap.url);
+      // Reset the debounce timer
+      checkForEasyApply(mutations, postApplyClass, currentUrl);
 
-        // console.log('Disconnecting observer.');
-        observer.disconnect();
-        // console.log('Observer disconnected.');
-      }
+      // console.log('Disconnecting observer.');
+      observer.disconnect();
+      // console.log('Observer disconnected.');
     });
+
     const config = { childList: true, subtree: true };
 
     observer.observe(jobElement, config);
     // console.log('Observer connected.', observer);
+  }
+}
+
+function checkForEasyApply(mutations, postApplyClass, url) {
+  if (url !== window.location.href) {
+    return;
+  }
+
+  // Identify the class that indicates the application has been submitted
+  const postApplyClass = 'artdeco-inline-feedback--success';
+
+  for (const mutation of mutations) {
+    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === 1 && node.classList.contains(postApplyClass)) {
+          // Check if the application has already been saved to prevent duplicate submissions
+          if (!savedApplication) {
+            // Now we need to send this to the Google Sheet
+            savedApplication = true; // Prevent further submissions
+            const pageMap = parseUrl(url);
+            saveJob(pageMap);
+
+            appliedJobs.push(pageMap.url);
+          }
+        }
+      }
+    }
   }
 }
 
