@@ -70,7 +70,7 @@ export default class Utils {
   hideElement(selector) {
     const element = document.querySelector(selector);
     if (element) {
-      element.hide();
+      element.style.display = 'none';
     }
   }
 
@@ -82,7 +82,7 @@ export default class Utils {
   showElement(selector) {
     const element = document.querySelector(selector);
     if (element) {
-      element.show();
+      element.style.display = 'block';
     }
   }
 
@@ -205,15 +205,15 @@ export default class Utils {
       return;
     }
 
-    const appliedJobs = await this.getAppliedJobs();
-    if (appliedJobs.includes(jobId)) {
+    const jobsApplied = await this.getAppliedJobs();
+    if (jobsApplied.includes(jobId)) {
       console.error('Job already in applied jobs:', jobId);
       return;
     }
 
-    appliedJobs.push(jobId);
-    console.log('Applied jobs:', appliedJobs);
-    chrome.storage.sync.set({ appliedJobs: appliedJobs }, function () {
+    jobsApplied.push(jobId);
+    console.log('Applied jobs:', jobsApplied);
+    chrome.storage.sync.set({ jobsApplied: jobsApplied }, function () {
       console.log('Job added to applied jobs:', jobId);
     });
   }
@@ -225,12 +225,12 @@ export default class Utils {
    */
   getAppliedJobs() {
     return new Promise((resolve, reject) => {
-      chrome.storage.sync.get('appliedJobs', function (result) {
+      chrome.storage.sync.get('jobsApplied', function (result) {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError.message);
           reject(chrome.runtime.lastError.message);
         } else {
-          resolve(result.appliedJobs || []);
+          resolve(result.jobsApplied || []);
         }
       });
     });
