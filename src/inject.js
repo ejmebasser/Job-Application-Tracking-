@@ -95,7 +95,8 @@ async function sendReady() {
 function dismissAlreadyApplied(
   appliedIndicatorSelector = '.job-card-container__footer-item .tvm__text',
   hideSelector = 'button[aria-label="Dismiss job"]',
-  parentSelector = '.job-card-container'
+  parentSelector = '.job-card-container',
+  jobIdSelector = '[data-job-id]'
 ) {
   // console.log('autoHide:', autoHide);
   if (!autoHide) {
@@ -116,6 +117,8 @@ function dismissAlreadyApplied(
       const hideElement = jobCard.querySelector(hideSelector);
       // console.log('hideElement:', hideElement);
       dismissJob(hideElement);
+
+      addJobToApplied(jobId);
     }
   });
 }
@@ -182,6 +185,7 @@ function dismissJob(dismissButton) {
   if (dismissButton) {
     dismissButton.click();
     // console.log('Dismiss job button clicked.');
+
     return { success: true, message: 'Job dismissed successfully.' };
   } else {
     // changing this to // console.log since it may not be an error
@@ -276,6 +280,10 @@ export function saveJob(formData) {
       }
     }
   );
+}
+
+function addJobToApplied(jobId) {
+  chrome.runtime.sendMessage({ action: 'addJobToApplied', jobId: jobId });
 }
 
 /**

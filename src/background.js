@@ -75,6 +75,11 @@ chrome.runtime.onMessage.addListener(
       sendResponse(response);
     }
 
+    if (message.action === 'addJobToApplied') {
+      // console.log('adding job to applied');
+      utils.addJobToApplied(message.jobId);
+    }
+
     if (message.action === 'ready') {
       // console.log('inject ready');
       onLoad();
@@ -110,6 +115,10 @@ export async function saveJob(formData) {
   // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
+
+  const jobId = utils.getJobIdFromUrl(formData.url);
+  utils.addJobToApplied(jobId);
+
   // alert('line 73 of background');
   // console.log('saveJob response:', response);
   return response;
