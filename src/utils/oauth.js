@@ -18,7 +18,7 @@ export default class OAuth {
    * I really don't like this. It seems like a poor singleton attempt.
    * There is probably a better way to handle this.
    *
-   * @returns {OAuth} The OAuth object.
+   * @return {OAuth} The OAuth object.
    */
   async getOAuth() {
     this.authToken = await this.getAuthToken();
@@ -29,7 +29,7 @@ export default class OAuth {
   /**
    * Function to get the authToken from chrome.identity.
    *
-   * @returns {string} The OAuth token.
+   * @return {string} The OAuth token.
    */
   getAuthToken() {
     return new Promise((resolve, reject) => {
@@ -47,7 +47,7 @@ export default class OAuth {
   /**
    * Get the list of Google Sheets, ordered by descending modified time.
    *
-   * @returns {array} The list of Google Sheets as an array of objects with name and id properties.
+   * @return {array} The list of Google Sheets as an array of objects with name and id properties.
    */
   getSheets() {
     const url =
@@ -78,7 +78,7 @@ export default class OAuth {
    * Gets the sheet names from a Google Sheet. The sheet names are the labelled tabs at the bottom of a Google Sheet.
    *
    * @param {string} spreadsheetId The id of the Google Sheet.
-   * @returns {array} The list of sheet names as an array of strings.
+   * @return {array} The list of sheet names as an array of strings.
    */
   async getSheetNames(spreadsheetId) {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}`;
@@ -105,10 +105,10 @@ export default class OAuth {
    * Get a value from a particular cell in a Google Sheet.
    *
    * @param {string} cell The cell to get the value from. e.g. A1
-   * @returns {object} The value of the cell.
+   * @return {object} The value of the cell.
    */
   async getCellValue(cell) {
-    let { sheetId, sheetName } = await chrome.storage.local.get([
+    let { sheetId, sheetName } = await chrome.storage.sync.get([
       'sheetId',
       'sheetName',
     ]);
@@ -132,10 +132,10 @@ export default class OAuth {
    * There may be a better way to map this data to the Google Sheet.
    *
    * @param {object} data The data to append to the Google Sheet.
-   * @returns {object} The response from the Google Sheets API.
+   * @return {object} The response from the Google Sheets API.
    */
   async appendValues(data) {
-    let { sheetId, sheetName } = await chrome.storage.local.get([
+    const { sheetId, sheetName } = await chrome.storage.sync.get([
       'sheetId',
       'sheetName',
     ]);

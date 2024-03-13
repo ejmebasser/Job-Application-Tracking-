@@ -53,30 +53,29 @@ describe('Utils', () => {
       expect(mockFn).toHaveBeenCalled();
     });
 
-    it('should ignore subsequent calls within the delay period', (done) => {
+    it('should ignore subsequent calls within the delay period', async () => {
       const mockFn = jest.fn();
       const throttledFn = utils.throttle(mockFn, 1000);
 
       throttledFn();
       throttledFn();
 
-      setTimeout(() => {
-        expect(mockFn).toHaveBeenCalledTimes(1);
-        done();
-      }, 1100);
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
-    it('should execute the function again after the delay period', (done) => {
+    it('should execute the function again after the delay period', async () => {
       const mockFn = jest.fn();
       const throttledFn = utils.throttle(mockFn, 1000);
 
       throttledFn();
 
-      setTimeout(() => {
-        throttledFn();
-        expect(mockFn).toHaveBeenCalledTimes(2);
-        done();
-      }, 1100);
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      throttledFn();
+
+      expect(mockFn).toHaveBeenCalledTimes(2);
     });
   });
 });

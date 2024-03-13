@@ -11,4 +11,8 @@ module.exports = {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },
+  // uncomment below to reduce size of output
+  // optimization: {
+  //   minimize: true,
+  // },
 };

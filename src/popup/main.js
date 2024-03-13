@@ -39,21 +39,19 @@ document.addEventListener('DOMContentLoaded', function () {
   submitButton.addEventListener('click', settings.saveSettings);
 
   let ready = false;
-  chrome.runtime.onMessage.addListener(function (
-    request,
-    sender,
-    sendResponse
-  ) {
-    if (request.ready && !ready) {
-      ready = true;
+  chrome.runtime.onMessage.addListener(
+    function (request, sender, sendResponse) {
+      if (request.ready && !ready) {
+        ready = true;
+      }
     }
-  });
+  );
 
-  chrome.storage.local.get(
+  chrome.storage.sync.get(
     Object.keys(settings.fields),
     async function (result) {
-      await settings.populateSheetList();
       settings.updateSettingsValues(result);
+      await settings.populateSheetList();
 
       if (!result.sheetId) {
         utils.toggleCogFunction();
@@ -85,77 +83,88 @@ document.addEventListener('DOMContentLoaded', function () {
     utils.throttle(() => job.handleSubmit(), 500)
   );
 
+  jobForm.querySelector('#hideJob').addEventListener('click', function () {
+    // Show an alert (this works only if it's within the same page or a popup)
+    // alert('Hide Job button clicked @ 323PM');
 
-
-jobForm.querySelector('#hideJob').addEventListener('click', function() {
-  // Show an alert (this works only if it's within the same page or a popup)
-  //alert('Hide Job button clicked @ 323PM');
-
-  // Use the Chrome scripting API to execute the script in the active tab
-  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    chrome.scripting.executeScript({
-      target: {tabId: tabs[0].id},
-      function: () => {
-        const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
-        if (dismissButton) {
+    // Use the Chrome scripting API to execute the script in the active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        function: () => {
+          const dismissButton = document.querySelector(
+            '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+          );
+          if (dismissButton) {
             dismissButton.click();
-            console.log('Dismiss job button clicked.');
-        } else {
+            // console.log('Dismiss job button clicked.');
+          } else {
             console.error('Dismiss button not found.');
-        }
-      }
+          }
+        },
+      });
     });
   });
-});
 
+  // this is what i added
+  jobForm
+    .querySelector('#storeJobNumber')
+    .addEventListener('click', function () {
+      // Show the first alert with the current time
+      const currentTime = new Date().toLocaleTimeString();
+      // alert('Clicked at ' + currentTime);
 
-//this is what i added
-jobForm.querySelector('#storeJobNumber').addEventListener('click', function() {
-  // Show the first alert with the current time
-  const currentTime = new Date().toLocaleTimeString();
-  alert('Clicked at ' + currentTime);
+      // Use the Chrome scripting API to execute the script in the active tab to get the current URL
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const url = tabs[0].url;
+        // Extract the jobID from the URL
+        const jobIdMatch = url.match(/currentJobId=(\d+)/);
+        const jobId = jobIdMatch ? jobIdMatch[1] : null;
 
-  // Use the Chrome scripting API to execute the script in the active tab to get the current URL
-  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    const url = tabs[0].url;
-    // Extract the jobID from the URL
-    const jobIdMatch = url.match(/currentJobId=(\d+)/);
-    const jobId = jobIdMatch ? jobIdMatch[1] : null;
+        if (jobId) {
+          // Show the second alert with the jobID
+          // alert('Job ID: ' + jobId);
 
-    if (jobId) {
-      // Show the second alert with the jobID
-      alert('Job ID: ' + jobId);
+          // Retrieve the current 'jobsApplied' array from chrome.storage.sync
+          chrome.storage.sync.get(['jobsApplied'], function (result) {
+            const jobsApplied = result.jobsApplied || [];
 
-      // Retrieve the current 'jobsApplied' array from chrome.storage.local
-      chrome.storage.local.get(['jobsApplied'], function(result) {
-        let jobsApplied = result.jobsApplied || [];
+            // Alert the current 'jobsApplied' array before adding the new jobID
+            // alert(
+            //   'Current saved jobs: ' +
+            //     (jobsApplied.length > 0 ? jobsApplied.join(', ') : 'None')
+            // );
 
-        // Alert the current 'jobsApplied' array before adding the new jobID
-        alert('Current saved jobs: ' + (jobsApplied.length > 0 ? jobsApplied.join(', ') : 'None'));
+            if (!jobsApplied.includes(jobId)) {
+              jobsApplied.push(jobId);
 
-        if (!jobsApplied.includes(jobId)) {
-          jobsApplied.push(jobId);
-
-          // Save the updated 'jobsApplied' array back to chrome.storage.local
-          chrome.storage.local.set({'jobsApplied': jobsApplied}, function() {
-            console.log('Job ID added to jobsApplied:', jobId);
-
-            // Alert the updated 'jobsApplied' array after adding the new jobID
-            alert('Updated jobs list: ' + jobsApplied.join(', '));
+              // Save the updated 'jobsApplied' array back to chrome.storage.sync
+              chrome.storage.sync.set(
+                { jobsApplied: jobsApplied },
+                function () {
+                  // console.log('Job ID added to jobsApplied:', jobId);
+                  // Alert the updated 'jobsApplied' array after adding the new jobID
+                  // alert('Updated jobs list: ' + jobsApplied.join(', '));
+                }
+              );
+            } else {
+              // Alert that the job ID already exists and cancel out of this function with a specific message
+              // alert(
+              //   'Will not load because you have already applied to this position. Job ID ' +
+              //     jobId +
+              //     ' already exists in your list.'
+              // );
+              return; // Cancel out of the function if the jobID already exists
+            }
           });
         } else {
-          // Alert that the job ID already exists and cancel out of this function with a specific message
-          alert('Will not load because you have already applied to this position. Job ID ' + jobId + ' already exists in your list.');
-          return; // Cancel out of the function if the jobID already exists
+          // alert('Job ID not found.');
+          console.error('Job ID not found.');
         }
       });
-    } else {
-      alert('Job ID not found.');
-    }
-  });
-});
+    });
 
-//this is what i added
+  // this is what i added
 
   document
     .querySelector('#settingsButton')

@@ -1,0 +1,46 @@
+name: Main Workflow
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     matrix:
+  #       node-version: [21.x]
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v2
+  #     - name: Run Lint
+  #       uses: ./.github/actions/lint
+  #       with:
+  #         node-version: ${{ matrix.node-version }}
+
+  test_and_build:
+    # needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [21.x]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Test and Build
+        uses: ./.github/actions/test_and_build
+        with:
+          node-version: ${{ matrix.node-version }}
+
+  zip:
+    needs: test_and_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Zip
+        uses: ./.github/actions/zip
+
+  # now that we have it zipped, we should be able to deploy it to the marketplace

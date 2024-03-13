@@ -19,9 +19,7 @@
     "activeTab",
     "storage",
     "identity",
-    "scripting",
-    "tabs",
-    "<all_urls>"
+    "scripting"
   ],
   "host_permissions": [
     "https://www.linkedin.com/jobs/*",
@@ -38,9 +36,7 @@
         "https://www.indeed.com/*",
         "https://www.glassdoor.com/*"
       ],
-      "js": [
-        "dist/inject.bundle.js"
-      ]
+      "js": ["dist/inject.bundle.js"]
     }
   ]
 }

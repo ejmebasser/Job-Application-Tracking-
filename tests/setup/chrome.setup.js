@@ -3,7 +3,7 @@ global.chrome = {
   action: {
     onClicked: {
       addListener: jest.fn((listener) => {
-        messageListener = listener;
+        return listener;
       }),
     },
   },
@@ -17,7 +17,7 @@ global.chrome = {
     lastError: null,
     onMessage: {
       addListener: jest.fn((listener) => {
-        messageListener = listener;
+        return listener;
       }),
     },
     sendMessage: jest.fn().mockImplementation((message, callback) => {
@@ -28,7 +28,7 @@ global.chrome = {
     executeScript: jest.fn((tabId) => {}),
   },
   storage: {
-    local: {
+    sync: {
       get: jest.fn().mockImplementation((keys, callback) => {
         const store = {
           sheetId: 'test-sheet-id',
@@ -47,7 +47,7 @@ global.chrome = {
     sendMessage: jest.fn().mockImplementation((tabId, message) => {}),
     onUpdated: {
       addListener: jest.fn((listener) => {
-        messageListener = listener;
+        return listener;
       }),
     },
     openPopup: jest.fn(),

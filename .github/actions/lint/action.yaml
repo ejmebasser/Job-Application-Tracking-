@@ -1,0 +1,29 @@
+name: Lint files
+
+description: This action will lint the JobTrakr extension using ESLint.
+
+inputs:
+  node-version:
+    description: 'The version of Node.js to use for linting the extension.'
+    required: true
+    default: '21.x'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Lint files
+      shell: bash
+      run: npm run lint

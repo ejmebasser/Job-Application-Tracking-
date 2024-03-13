@@ -28,23 +28,23 @@ describe('Settings', () => {
     sheetElement.appendChild(document.createElement('span'));
 
     settings = new Settings(jobForm, settingsForm, sheetElement);
-    oauth = await settings.getOauth();
+    oauth = await settings.initializeOAuth();
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
   });
 
-  describe('getOauth function', () => {
+  describe('initializeOauth function', () => {
     it('should get the OAuth token', async () => {
-      const oauth = await settings.getOauth();
+      const oauth = await settings.initializeOAuth();
 
       expect(oauth).toBeDefined();
     });
 
     it('should return the existing OAuth token', async () => {
       settings.oauth = 'test-token';
-      const oauth = await settings.getOauth();
+      const oauth = await settings.initializeOAuth();
 
       expect(oauth).toBe('test-token');
     });
@@ -78,7 +78,10 @@ describe('Settings', () => {
     });
 
     it('should send a message to the tab if autoSave is true', () => {
-      const sendAutoSaveMessage = jest.spyOn(settings, 'sendAutoSaveMessage');
+      const sendAutoSaveMessage = jest.spyOn(
+        settings,
+        'sendAutoSettingMessage'
+      );
 
       const autoSave = settings.settingsForm.querySelector(
         'input[name="autoSave"]'
@@ -86,7 +89,10 @@ describe('Settings', () => {
       autoSave.checked = true;
       settings.saveSettings();
 
-      expect(sendAutoSaveMessage).toHaveBeenCalled();
+      expect(sendAutoSaveMessage).toHaveBeenCalledWith(
+        'autoSave',
+        autoSave.checked
+      );
     });
 
     it('should toggle the cog function', () => {
@@ -168,7 +174,7 @@ describe('Settings', () => {
       const returnFunc = jest.fn();
       settings.storeSettingsValues(newSettings);
 
-      expect(chrome.storage.local.set).toHaveBeenCalled();
+      expect(chrome.storage.sync.set).toHaveBeenCalled();
     });
   });
 
@@ -180,7 +186,7 @@ describe('Settings', () => {
 
     const sheetNames = ['test-sheet1', 'test-sheet2'];
     beforeEach(async () => {
-      oauth = await settings.getOauth();
+      oauth = await settings.initializeOAuth();
 
       oauth.getSheets = jest.fn().mockResolvedValue(sheetIds);
 
@@ -211,7 +217,7 @@ describe('Settings', () => {
     const sheetNames = ['test-sheet1', 'test-sheet2'];
 
     beforeEach(async () => {
-      oauth = await settings.getOauth();
+      oauth = await settings.initializeOAuth();
 
       oauth.getSheetNames = jest.fn().mockResolvedValue(sheetNames);
     });
@@ -238,16 +244,17 @@ describe('Settings', () => {
     });
   });
 
-  describe('sendAutoSaveMessage function', () => {
+  describe('sendAutoSettingMessage function', () => {
     it('should call the sendMessage function', () => {
       const sendMessage = jest.spyOn(settings.utils, 'sendMessage');
 
+      const setting = 'autoSave';
       const autoSave = true;
-      settings.sendAutoSaveMessage(autoSave);
+      settings.sendAutoSettingMessage(setting, autoSave);
 
       expect(sendMessage).toHaveBeenCalledWith({
-        action: 'autoSave',
-        autoSave: autoSave,
+        action: setting,
+        value: autoSave,
       });
     });
   });

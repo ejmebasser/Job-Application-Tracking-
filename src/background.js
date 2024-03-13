@@ -1,4 +1,7 @@
 import OAuth from './utils/oauth';
+import Utils from './utils/utils';
+
+const utils = new Utils();
 
 // function that injects code to a specific tab
 export function injectScript(tabId) {
@@ -8,54 +11,85 @@ export function injectScript(tabId) {
   });
 }
 
-// Open the popup when the extension icon is clicked
-chrome.action.onClicked.addListener((tab) => {
-  chrome.tabs.openPopup();
+/**
+ * Gets the current tab ID.
+ *
+ * @return {number} The current tab ID.
+ */
+async function getCurrentTabId() {
+  let [response] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  // console.log('response:', response);
+  return 'id' in response ? response.id : -1;
+}
+
+/**
+ * Function to load when the page has completed loading.
+ */
+async function onLoad() {
+  chrome.storage.sync.get(['autoSave', 'autoHide'], (result) => {
+    // console.log('autoSave:', result.autoSave);
+    if (result.autoSave) {
+      utils.sendMessage({ action: 'autoSave', autoSave: result.autoSave });
+    }
+
+    if (result.autoHide) {
+      utils.sendMessage({
+        action: 'autoHide',
+        autoHide: result.autoHide,
+      });
+    }
+  });
+}
+
+// listen for tab updates
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  // console.log('changeInfo', changeInfo);
+  // check for a URL in the changeInfo parameter (url is only added when it is changed)
+  if (changeInfo.status === 'complete') {
+    console.log('tab updated, sending reset message');
+    // inject the script to the tab
+    setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
+  }
 });
 
-// adds a listener to tab change
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  // check for a URL in the changeInfo parameter (url is only added when it is changed)
-  if (changeInfo.url) {
-    // inject the script to the tab
-    injectScript(tabId);
-  }
-
-  if (changeInfo.status === 'complete') {
-    chrome.storage.local.get(['autoSave'], (result) => {
-      if (result.autoSave) {
-        chrome.tabs.sendMessage(tabId, {
-          action: 'autoSave',
-          autoSave: result.autoSave,
-        });
-      }
-    });
-  }
+// Open the popup when the extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.openPopup();
 });
 
 /**
  *  Adds a listener for the 'saveJob' action.
  *  This will save the sheetURL to the chrome storage.
  */
-chrome.runtime.onMessage.addListener(async function (
-  message,
-  sender,
-  sendResponse
-) {
-  if (message.action === 'saveJob') {
-    response = await saveJob(message.formData);
-    sendResponse(response);
-  }
+chrome.runtime.onMessage.addListener(
+  async function (message, sender, sendResponse) {
+    // console.log('message:', message);
+    if (message.action === 'saveJob') {
+      // console.log('saving job');
+      const response = saveJob(message.formData);
+      // LinkedIn closes the connection and there is likely no listener to receive the response
+      // console.log('addListener response:', response);
+      sendResponse(response);
+    }
 
-  // if the listener is an async function, it must return true
-  return true;
-});
+    if (message.action === 'ready') {
+      // console.log('inject ready');
+      onLoad();
+    }
+
+    // if the listener is an async function, it must return true
+    return true;
+  }
+);
 
 /**
- * This function initializes the OAuth object, for use in the background script.
- * 
- * @returns {OAuth} The OAuth object.
- 
+ * Initializes the OAuth object, for use in the background script.
+ *
+ * @return {OAuth} The OAuth object.
+
  */
 export async function initializeOauth() {
   let oauth = new OAuth();
@@ -64,12 +98,19 @@ export async function initializeOauth() {
   return oauth;
 }
 
+/**
+ * Saves the form data to the Google Sheet.
+ *
+ * @param {Object} formData The form data to be saved to the Google Sheet.
+ * @return {Object} The response from the appendValues method.
+ */
 export async function saveJob(formData) {
   const oauth = await initializeOauth();
   // console.log('saving job');
   // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
-  alert('line 73 of background')
+  // alert('line 73 of background');
+  // console.log('saveJob response:', response);
   return response;
 }

@@ -1,0 +1,22 @@
+name: Zip Release
+
+description: Zip the dist folder, manifest.json, popup.html, and popup.css for the JobTrakr extension. This will allow for export to the Chrome Web Store.
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: BundledFiles
+        path: ./dist
+    - name: Zip Files
+      shell: bash
+      run: |
+        cd $GITHUB_WORKSPACE
+        zip -r JobTrakr.zip ./dist manifest.json popup.html popup.css
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: JobTrakr
+        path: ./JobTrakr.zip

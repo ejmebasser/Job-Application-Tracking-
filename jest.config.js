@@ -7,4 +7,10 @@ module.exports = {
   testMatch: ['**/tests/**/*.test.js'],
   setupFiles: ['./tests/setup/jest.setup.js', './tests/setup/chrome.setup.js'],
   testEnvironment: 'jsdom',
+  // coverageThreshold: {
+  //   global: {
+  //     functions: 60,
+  //     statements: 60,
+  //   },
+  // },
 };
