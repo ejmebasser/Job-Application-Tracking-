@@ -41,18 +41,48 @@ export default class Utils {
     const resultDiv = document.querySelector(element);
     const messageDiv = document.createElement('p');
     messageDiv.innerHTML = message;
+
+    // Check if the message is already in the result div
+    for (const child of resultDiv.children) {
+      if (child.innerHTML === message) {
+        // we have already attached this message, exit
+        return;
+      }
+    }
     resultDiv.appendChild(messageDiv);
   }
 
   /**
-   * Removes a button from the popup.
+   * Remove all messages from the indicated element.
    *
-   * @param {string} buttonId The id of the button to remove.
+   * @param {string} element The element to remove the messages from.
    */
-  removeButton(buttonId) {
-    const submitButton = document.querySelector(buttonId);
-    if (submitButton) {
-      submitButton.remove();
+  clearMessage(element) {
+    const resultDiv = document.querySelector(element);
+    resultDiv.innerHTML = '';
+  }
+
+  /**
+   * Hides an element from the popup if it exists.
+   *
+   * @param {string} selector The id of the element to hide.
+   */
+  hideElement(selector) {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.hide();
+    }
+  }
+
+  /**
+   * Shows an element from the popup.
+   *
+   * @param {string} selector The id of the element to show.
+   */
+  showElement(selector) {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.show();
     }
   }
 
@@ -144,6 +174,63 @@ export default class Utils {
           reject(chrome.runtime.lastError.message);
         } else {
           resolve(result[key]);
+        }
+      });
+    });
+  }
+
+  /**
+   * Retrieve the job ID from the URL.
+   * This should only work on LinkedIn.
+   *
+   * @param {string} url The URL to extract the job ID from.
+   * @return {string} The job ID or null if not found.
+   */
+  getJobIdFromUrl(url) {
+    // const jobIdMatch = url.match(/view\/|currentJobId=(\d+)\//);
+    const jobIdMatch = url.match(/(\/view\/|currentJobId=)(\d+)/);
+    // console.log('jobIdMatch:', jobIdMatch);
+    return jobIdMatch ? jobIdMatch[2] : '';
+  }
+
+  /**
+   * Add a job to the applied jobs list.
+   *
+   * @param {string} jobId The ID of the job to add.
+   * @return {void}
+   */
+  async addJobToApplied(jobId) {
+    if (jobId === '') {
+      console.error('Job ID not found in URL:', jobId);
+      return;
+    }
+
+    const appliedJobs = await this.getAppliedJobs();
+    if (appliedJobs.includes(jobId)) {
+      console.error('Job already in applied jobs:', jobId);
+      return;
+    }
+
+    appliedJobs.push(jobId);
+    console.log('Applied jobs:', appliedJobs);
+    chrome.storage.sync.set({ appliedJobs: appliedJobs }, function () {
+      console.log('Job added to applied jobs:', jobId);
+    });
+  }
+
+  /**
+   * Retrieve the applied jobs from chrome.storage.sync.
+   *
+   * @returns {string[]} The saved applied jobs.
+   */
+  getAppliedJobs() {
+    return new Promise((resolve, reject) => {
+      chrome.storage.sync.get('appliedJobs', function (result) {
+        if (chrome.runtime.lastError) {
+          console.error(chrome.runtime.lastError.message);
+          reject(chrome.runtime.lastError.message);
+        } else {
+          resolve(result.appliedJobs || []);
         }
       });
     });

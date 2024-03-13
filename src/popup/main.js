@@ -141,10 +141,14 @@ document.addEventListener('DOMContentLoaded', function () {
               // Save the updated 'jobsApplied' array back to chrome.storage.sync
               chrome.storage.sync.set(
                 { jobsApplied: jobsApplied },
-                function () {
-                  // console.log('Job ID added to jobsApplied:', jobId);
+                function (result) {
+                  console.log('Job ID added to jobsApplied:', jobId);
                   // Alert the updated 'jobsApplied' array after adding the new jobID
                   // alert('Updated jobs list: ' + jobsApplied.join(', '));
+                  this.utils.appendMessage(
+                    '#result',
+                    'Job ID added to jobsApplied: ' + jobId
+                  );
                 }
               );
             } else {
@@ -159,6 +163,10 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         } else {
           // alert('Job ID not found.');
+          this.utils.appendMessage(
+            '#result',
+            'Job ID not found or already added.'
+          );
           console.error('Job ID not found.');
         }
       });
