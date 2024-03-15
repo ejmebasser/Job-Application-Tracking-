@@ -238,6 +238,9 @@ function checkForEasyApply(mutations, postApplyClass, url) {
     return;
   }
 
+  // Identify the class that indicates the application has been submitted
+  const postApplyClass = 'artdeco-inline-feedback--success';
+
   for (const mutation of mutations) {
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
       for (const node of mutation.addedNodes) {
