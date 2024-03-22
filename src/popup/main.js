@@ -83,9 +83,10 @@ document.addEventListener('DOMContentLoaded', function () {
     utils.throttle(() => job.handleSubmit(), 500)
   );
 
+
   jobForm.querySelector('#hideJob').addEventListener('click', function () {
     // Show an alert (this works only if it's within the same page or a popup)
-    // alert('Hide Job button clicked @ 323PM');
+     //alert('Hide Job button clicked @ 323PM');
 
     // Use the Chrome scripting API to execute the script in the active tab
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         target: { tabId: tabs[0].id },
         function: () => {
           const dismissButton = document.querySelector(
-            '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+            '.jobs-search-results-list__list-item--active button.job-card-container__action'
           );
           if (dismissButton) {
             dismissButton.click();

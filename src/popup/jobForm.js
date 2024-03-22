@@ -121,6 +121,24 @@ export default class JobForm {
         }
       );
     });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        function: () => {
+          const dismissButton = document.querySelector(
+            '.jobs-search-results-list__list-item--active button.job-card-container__action'
+          );
+          if (dismissButton) {
+            dismissButton.click();
+            // console.log('Dismiss job button clicked.');
+          } else {
+            console.error('Dismiss button not found.');
+          }
+        },
+      });
+    })
+
   }
 
   /**
