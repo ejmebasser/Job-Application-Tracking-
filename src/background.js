@@ -1,4 +1,7 @@
 import OAuth from './utils/oauth';
+import Utils from './utils/utils';
+
+const utils = new Utils();
 
 // function that injects code to a specific tab
 export function injectScript(tabId) {
@@ -18,27 +21,22 @@ async function getCurrentTabId() {
     active: true,
     lastFocusedWindow: true,
   });
-  console.log('response:', response);
-  return response.id;
+  // console.log('response:', response);
+  return 'id' in response ? response.id : -1;
 }
 
 /**
  * Function to load when the page has completed loading.
  */
 async function onLoad() {
-  const tabId = await getCurrentTabId();
-  // console.log('tabId:', tabId);
   chrome.storage.sync.get(['autoSave', 'autoHide'], (result) => {
     // console.log('autoSave:', result.autoSave);
     if (result.autoSave) {
-      chrome.tabs.sendMessage(tabId, {
-        action: 'autoSave',
-        autoSave: result.autoSave,
-      });
+      utils.sendMessage({ action: 'autoSave', autoSave: result.autoSave });
     }
 
     if (result.autoHide) {
-      chrome.tabs.sendMessage(tabId, {
+      utils.sendMessage({
         action: 'autoHide',
         autoHide: result.autoHide,
       });
@@ -48,11 +46,12 @@ async function onLoad() {
 
 // listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  // console.log('changeInfo', changeInfo);
   // check for a URL in the changeInfo parameter (url is only added when it is changed)
-  if (changeInfo.url) {
+  if (changeInfo.status === 'complete') {
+    console.log('tab updated, sending reset message');
     // inject the script to the tab
-    injectScript(tabId);
-    onLoad();
+    setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
   }
 });
 
@@ -70,8 +69,15 @@ chrome.runtime.onMessage.addListener(
     // console.log('message:', message);
     if (message.action === 'saveJob') {
       // console.log('saving job');
-      const response = await saveJob(message.formData);
+      const response = saveJob(message.formData);
+      // LinkedIn closes the connection and there is likely no listener to receive the response
+      // console.log('addListener response:', response);
       sendResponse(response);
+    }
+
+    if (message.action === 'addJobToApplied') {
+      // console.log('adding job to applied');
+      utils.addJobToApplied(message.jobId);
     }
 
     if (message.action === 'ready') {
@@ -109,6 +115,54 @@ export async function saveJob(formData) {
   // console.log(oauth);
 
   const response = await oauth.appendValues(formData);
+
+  const jobId = utils.getJobIdFromUrl(formData.url);
+  utils.addJobToApplied(jobId);
+
   // alert('line 73 of background');
+  // console.log('saveJob response:', response);
   return response;
+}
+
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "easyApplyClicked" && sender.tab) {
+    console.log("Easy Apply button was clicked in content script.");
+
+    // Dismiss the job in the active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0 && tabs[0].id) {
+        chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          func: dismissJobDirectly,
+        }, () => {
+          // Optional: Handle errors or perform actions after the script has executed
+          if (chrome.runtime.lastError) {
+            console.error('Error executing script: ', chrome.runtime.lastError.message);
+            sendResponse({status: "Error executing dismiss script"});
+          } else {
+            console.log('Dismiss job script executed successfully.');
+            sendResponse({status: "Dismiss job action triggered"});
+          }
+        });
+      } else {
+        console.error("No active tab found.");
+        sendResponse({status: "No active tab"});
+      }
+    });
+
+    return true; // Indicates an asynchronous response (due to chrome.tabs.query being async)
+  }
+});
+
+function dismissJobDirectly() {
+    const dismissButton = document.querySelector(
+      '.jobs-search-results-list__list-item--active button.job-card-container__action'
+    );
+    if (dismissButton) {
+        dismissButton.click();
+        console.log('Dismiss job button clicked.');
+    } else {
+        console.error('Dismiss button not found.');
+    }
 }

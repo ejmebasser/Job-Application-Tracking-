@@ -83,9 +83,10 @@ document.addEventListener('DOMContentLoaded', function () {
     utils.throttle(() => job.handleSubmit(), 500)
   );
 
+
   jobForm.querySelector('#hideJob').addEventListener('click', function () {
     // Show an alert (this works only if it's within the same page or a popup)
-    // alert('Hide Job button clicked @ 323PM');
+     //alert('Hide Job button clicked @ 323PM');
 
     // Use the Chrome scripting API to execute the script in the active tab
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -93,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function () {
         target: { tabId: tabs[0].id },
         function: () => {
           const dismissButton = document.querySelector(
-            '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+            '.jobs-search-results-list__list-item--active button.job-card-container__action'
           );
           if (dismissButton) {
             dismissButton.click();
@@ -118,15 +119,16 @@ document.addEventListener('DOMContentLoaded', function () {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const url = tabs[0].url;
         // Extract the jobID from the URL
-        const jobIdMatch = url.match(/currentJobId=(\d+)/);
-        const jobId = jobIdMatch ? jobIdMatch[1] : null;
+        const jobIdMatch = url.match(/(\/view\/|currentJobId=)(\d+)/);
+        const jobId = jobIdMatch ? jobIdMatch[2] : null;
+        // alert('Job ID: ' + jobId);
 
         if (jobId) {
           // Show the second alert with the jobID
           // alert('Job ID: ' + jobId);
 
           // Retrieve the current 'jobsApplied' array from chrome.storage.sync
-          chrome.storage.sync.get(['jobsApplied'], function (result) {
+          chrome.storage.sync.get('jobsApplied', function (result) {
             const jobsApplied = result.jobsApplied || [];
 
             // Alert the current 'jobsApplied' array before adding the new jobID
@@ -144,7 +146,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 function () {
                   // console.log('Job ID added to jobsApplied:', jobId);
                   // Alert the updated 'jobsApplied' array after adding the new jobID
-                  // alert('Updated jobs list: ' + jobsApplied.join(', '));
+                  alert('Updated jobs list: ' + jobsApplied.join(', '));
+                  utils.appendMessage(
+                    '#result',
+                    'Job ID added to jobsApplied: ' + jobId
+                  );
                 }
               );
             } else {
@@ -159,6 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         } else {
           // alert('Job ID not found.');
+          utils.appendMessage('#result', 'Job ID not found or already added.');
           console.error('Job ID not found.');
         }
       });

@@ -1,10 +1,10 @@
 let autoSave = false;
 let autoHide = false;
 let savedApplication = false;
-let hideListener;
 let observer;
 
-const loadDelay = 1000;
+const appliedJobs = [];
+const LOAD_DELAY = 1000;
 
 // maybe we want to parse the url and set a bunch of variables for use in all the scripts
 // that way functions can just call something like 'pageData.dismissSelector'
@@ -29,33 +29,96 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       );
       response = dismissJob(dismissButton);
       break;
+    case 'tabUpdated':
+      reset();
+      break;
   }
   sendResponse(response);
 
   return true;
 });
 
+function reset() {
+  autoSave = false;
+  autoHide = false;
+
+  if (observer) {
+    observer.disconnect();
+    observer = null;
+  }
+
+  delayedLoad();
+}
+
 if (document.readyState === 'complete') {
-  setTimeout(onLoad(), loadDelay);
+  delayedLoad();
 } else {
   window.addEventListener('load', () => {
-    setTimeout(onLoad, loadDelay);
+    delayedLoad();
   });
+}
+
+function delayedLoad() {
+  setTimeout(onLoad, LOAD_DELAY);
 }
 
 /**
  * Function to coordinate background and inject scripts.
  */
+let listenerAdded = false;
+
 function onLoad() {
   sendReady();
-
-  // We will set it here to disconnect the autosave if there is one,
-  // and then we will reset the value when we get the "autoSave" message
   handleAutoSave(autoSave);
-
-  // Do more stuff here after the document has fully loaded
   handleAutoHide(autoHide);
+
+  // Add the Apply button listener only if it hasn't been added before
+  if (!listenerAdded) {
+    addApplyButtonListener();
+    listenerAdded = true; // Mark the listener as added
+  }
 }
+
+function addApplyButtonListener() {
+  document.addEventListener('click', function(event) {
+    if (event.target.matches('.jobs-apply-button') || event.target.closest('.jobs-apply-button')) {
+      alert('Button pressed 70');
+      chrome.runtime.sendMessage({action: "easyApplyClicked"}, function(response) {
+        console.log(response.status);
+    });
+
+      // Determine the website name based on the window.location.host or another characteristic
+      let websiteName = 'Unknown Website'; // Default value
+      if (window.location.href.indexOf('linkedin.com') !== -1) {
+        websiteName = 'LinkedIn';
+      } else if (window.location.href.indexOf('indeed.com') !== -1) {
+        websiteName = 'Indeed';
+      } // Add more conditions for other websites as needed
+
+      // Example of what you might want to collect; adjust based on actual content and requirements
+      const jobData = {
+        jobTitle: getText('.job-details-jobs-unified-top-card__job-title') || 'Unknown Title',
+        company: getText('.job-details-jobs-unified-top-card__primary-description-without-tagline a') || 'Unknown Company',
+        applicationDateTime: formatCurrentDateTime(),
+        source: websiteName, // Add the website name here
+        url: window.location.href
+      };
+
+      // Call saveJob function with the collected job data
+      saveJob(jobData);
+
+      // Assuming dismissJob requires a dismissButton element
+      const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+      if(dismissButton) {
+        dismissJob(dismissButton);
+      } else {
+        console.log('Dismiss button not found.');
+      }
+    }
+
+  });
+}
+
 
 /**
  * Sends a message to the background script to indicate that the content script is ready.
@@ -75,7 +138,8 @@ async function sendReady() {
 function dismissAlreadyApplied(
   appliedIndicatorSelector = '.job-card-container__footer-item .tvm__text',
   hideSelector = 'button[aria-label="Dismiss job"]',
-  parentSelector = '.job-card-container'
+  parentSelector = '.job-card-container',
+  jobIdSelector = '[data-job-id]'
 ) {
   // console.log('autoHide:', autoHide);
   if (!autoHide) {
@@ -96,6 +160,8 @@ function dismissAlreadyApplied(
       const hideElement = jobCard.querySelector(hideSelector);
       // console.log('hideElement:', hideElement);
       dismissJob(hideElement);
+
+      addJobToApplied(jobId);
     }
   });
 }
@@ -108,7 +174,7 @@ function dismissAlreadyApplied(
 function handleAutoSave(autoSaveValue) {
   // console.log('Auto save:', autoSaveValue);
   autoSave = autoSaveValue;
-  if (!savedApplication && autoSave) {
+  if (autoSave) {
     sendFormDataOnEasyApply();
   }
 
@@ -162,6 +228,7 @@ function dismissJob(dismissButton) {
   if (dismissButton) {
     dismissButton.click();
     // console.log('Dismiss job button clicked.');
+
     return { success: true, message: 'Job dismissed successfully.' };
   } else {
     // changing this to // console.log since it may not be an error
@@ -170,59 +237,85 @@ function dismissJob(dismissButton) {
   }
 }
 
+function hideJobs(){
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      function: () => {
+        const dismissButton = document.querySelector(
+          '.jobs-search-results-list__list-item--active button.job-card-container__action'
+        );
+        if (dismissButton) {
+          dismissButton.click();
+          // console.log('Dismiss job button clicked.');
+        } else {
+          console.error('Dismiss button not found.');
+        }
+      },
+    });
+  });
+}
+
 /**
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
  * This could probably be reused for behavior on other sites and with other application types.
- */
-export async function sendFormDataOnEasyApply() {
-  // Identify the classes to look for
-  const easyApplyButtonClass = '.jobs-apply-button span.artdeco-button__text';
-  const applyDivClass = '.jobs-s-apply';
-  const postApplyClass = 'artdeco-inline-feedback--success';
+//  */
+// export async function sendFormDataOnEasyApply() {
+//   // Identify the classes to look for
+//   const applyDivClass = '.jobs-s-apply';
+//   const postApplyClass = 'artdeco-inline-feedback--success';
 
-  // Get the elements
-  const easyApplyButton = document.querySelector(easyApplyButtonClass);
-  const jobElement = document.querySelector(applyDivClass);
+//   // Get the elements
+//   const jobElement = document.querySelector(applyDivClass);
 
-  if (
-    !observer &&
-    jobElement // If the job element is found
-    // && easyApplyButton.innerText.toLowerCase() === 'easy apply'
-  ) {
-    // Easy apply has been found
-    // console.log('Easy apply found!');
+//   const MUTATION_DELAY = 2;
+//   const currentUrl = window.location.href;
 
-    observer = new MutationObserver((mutations, mutationObserver) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          for (const node of mutation.addedNodes) {
-            if (
-              node.nodeType === 1 &&
-              node.classList.contains(postApplyClass)
-            ) {
-              // Now we need to send this to the Google Sheet.
-              savedApplication = true;
+//   // console.log('jobElement:', jobElement);
+//   if (!observer && jobElement) {
+//     // Initialize the observer only if it hasn't been initialized and the job element is found
 
-              const pageMap = parseUrl(window.location.href);
-              saveJob(pageMap);
+//     // Debounce timer variable declaration
 
-              // I was trying to debug why I sometimes get two job saves at a time
-              // I am preserving this here as I think it may be due to multiple mutations,
-              // but I stopped observing the behavior during debugging.
-              // console.log(
-              //   'Application submitted from mutation on:',
-              //   mutationObserver
-              // );
+//     observer = new MutationObserver((mutations, mutationObserver) => {
+//       // Clear the debounce timer on each mutation
 
-              observer.disconnect();
-            }
+//       // Reset the debounce timer
+//       checkForEasyApply(mutations, postApplyClass, currentUrl);
+
+//       // console.log('Disconnecting observer.');
+//       observer.disconnect();
+//       // console.log('Observer disconnected.');
+//     });
+
+//     const config = { childList: true, subtree: true };
+
+//     observer.observe(jobElement, config);
+//     // console.log('Observer connected.', observer);
+//   }
+// }
+
+function checkForEasyApply(mutations, postApplyClass, url) {
+  if (url !== window.location.href) {
+    return;
+  }
+
+  for (const mutation of mutations) {
+    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+      for (const node of mutation.addedNodes) {
+        if (node.nodeType === 1 && node.classList.contains(postApplyClass)) {
+          // Check if the application has already been saved to prevent duplicate submissions
+          if (!savedApplication) {
+            // Now we need to send this to the Google Sheet
+            savedApplication = true; // Prevent further submissions
+            const pageMap = parseUrl(url);
+            saveJob(pageMap);
+
+            appliedJobs.push(pageMap.url);
           }
         }
       }
-    });
-    const config = { childList: true, subtree: true };
-
-    observer.observe(jobElement, config);
+    }
   }
 }
 
@@ -236,12 +329,23 @@ export function saveJob(formData) {
   chrome.runtime.sendMessage(
     { action: 'saveJob', formData: formData },
     function (response) {
-      // console.log('response:', response);
-      // if (response.ok && autoHide) {
-      //   dismissJob();
-      // }
+      // console.log('saveJob response:', response);
+      if (autoHide) {
+        // we will assume that the job was saved successfully
+        // The page reloads before we get a response
+        // if (response.ok && autoHide) {
+        // console.log('dismissJob');
+        const dismissButton = document.querySelector(
+          '.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]'
+        );
+        dismissJob(dismissButton);
+      }
     }
   );
+}
+
+function addJobToApplied(jobId) {
+  chrome.runtime.sendMessage({ action: 'addJobToApplied', jobId: jobId });
 }
 
 /**
@@ -304,7 +408,7 @@ export function parseUrl(url) {
       source: 'Indeed',
       url: '.vjs-highlight .jobTitle a',
     },
-    'www.glassdoor.com': {
+    'www.GlassDoor.com': {
       jobTitle: '.JobDetails_jobTitle__Rw_gn',
       company: '.EmployerProfile_employerName__Xemli',
       source: 'GlassDoor',

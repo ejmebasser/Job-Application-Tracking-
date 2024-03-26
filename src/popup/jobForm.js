@@ -39,13 +39,27 @@ export default class JobForm {
    *
    * @param {object} formData The object to populate the form with.
    */
-  updateForm(formData) {
+  async updateForm(formData) {
+    console.log(formData);
     for (const id in formData) {
       try {
         this.form.querySelector(`input[name="${id}"]`).value = formData[id];
       } catch (error) {
         console.error(error);
       }
+    }
+
+    const appliedJobs = await this.utils.getAppliedJobs();
+    const jobId = this.utils.getJobIdFromUrl(formData.url);
+    // console.log('appliedJobs:', appliedJobs);
+    // console.log('jobId:', jobId);
+    if (appliedJobs.includes(jobId)) {
+      this.utils.hideElement('#saveData');
+      this.utils.appendMessage('#result', 'Job already applied to');
+    } else {
+      // clear result and show the saveData button
+      this.utils.clearMessage('#result');
+      this.utils.showElement('#saveData');
     }
   }
 
@@ -62,14 +76,19 @@ export default class JobForm {
 
     const oauth = await this.initializeOAuth();
     // console.log(oauth);
+    // console.log(formJson);
 
     // submit the form data to Google Apps Script
     oauth
       .appendValues(formJson)
       .then((response) => {
         if (response.status >= 200 && response.status < 300) {
+          const jobId = this.utils.getJobIdFromUrl(formJson.url);
+          this.utils.addJobToApplied(jobId);
+
           this.utils.appendMessage('#result', 'Data Submitted');
-          this.utils.removeButton(saveButtonId);
+
+          this.utils.hideElement(saveButtonId);
 
           // fetch the total jobs applied to from Google Apps Script
           this.fetchTotalJobsApplied();
@@ -102,6 +121,24 @@ export default class JobForm {
         }
       );
     });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        function: () => {
+          const dismissButton = document.querySelector(
+            '.jobs-search-results-list__list-item--active button.job-card-container__action'
+          );
+          if (dismissButton) {
+            dismissButton.click();
+            // console.log('Dismiss job button clicked.');
+          } else {
+            console.error('Dismiss button not found.');
+          }
+        },
+      });
+    })
+
   }
 
   /**
