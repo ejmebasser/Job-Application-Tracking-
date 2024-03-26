@@ -51,8 +51,10 @@ export default class JobForm {
 
     const appliedJobs = await this.utils.getAppliedJobs();
     const jobId = this.utils.getJobIdFromUrl(formData.url);
+
     // console.log('appliedJobs:', appliedJobs);
     // console.log('jobId:', jobId);
+
     if (appliedJobs.includes(jobId)) {
       this.utils.hideElement('#saveData');
       this.utils.appendMessage('#result', 'Job already applied to');

@@ -68,6 +68,7 @@ function delayedLoad() {
 let listenerAdded = false;
 
 function onLoad() {
+  // console.log('page loading');
   sendReady();
   handleAutoSave(autoSave);
   handleAutoHide(autoHide);
@@ -259,6 +260,7 @@ function hideJobs(){
 /**
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
  * This could probably be reused for behavior on other sites and with other application types.
+
 //  */
 // export async function sendFormDataOnEasyApply() {
 //   // Identify the classes to look for
