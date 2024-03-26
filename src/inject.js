@@ -65,17 +65,61 @@ function delayedLoad() {
 /**
  * Function to coordinate background and inject scripts.
  */
+let listenerAdded = false;
+
 function onLoad() {
   // console.log('page loading');
   sendReady();
-
-  // We will set it here to disconnect the autosave if there is one,
-  // and then we will reset the value when we get the "autoSave" message
   handleAutoSave(autoSave);
-
-  // Do more stuff here after the document has fully loaded
   handleAutoHide(autoHide);
+
+  // Add the Apply button listener only if it hasn't been added before
+  if (!listenerAdded) {
+    addApplyButtonListener();
+    listenerAdded = true; // Mark the listener as added
+  }
 }
+
+function addApplyButtonListener() {
+  document.addEventListener('click', function(event) {
+    if (event.target.matches('.jobs-apply-button') || event.target.closest('.jobs-apply-button')) {
+      alert('Button pressed 70');
+      chrome.runtime.sendMessage({action: "easyApplyClicked"}, function(response) {
+        console.log(response.status);
+    });
+
+      // Determine the website name based on the window.location.host or another characteristic
+      let websiteName = 'Unknown Website'; // Default value
+      if (window.location.href.indexOf('linkedin.com') !== -1) {
+        websiteName = 'LinkedIn';
+      } else if (window.location.href.indexOf('indeed.com') !== -1) {
+        websiteName = 'Indeed';
+      } // Add more conditions for other websites as needed
+
+      // Example of what you might want to collect; adjust based on actual content and requirements
+      const jobData = {
+        jobTitle: getText('.job-details-jobs-unified-top-card__job-title') || 'Unknown Title',
+        company: getText('.job-details-jobs-unified-top-card__primary-description-without-tagline a') || 'Unknown Company',
+        applicationDateTime: formatCurrentDateTime(),
+        source: websiteName, // Add the website name here
+        url: window.location.href
+      };
+
+      // Call saveJob function with the collected job data
+      saveJob(jobData);
+
+      // Assuming dismissJob requires a dismissButton element
+      const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+      if(dismissButton) {
+        dismissJob(dismissButton);
+      } else {
+        console.log('Dismiss button not found.');
+      }
+    }
+
+  });
+}
+
 
 /**
  * Sends a message to the background script to indicate that the content script is ready.
@@ -194,52 +238,69 @@ function dismissJob(dismissButton) {
   }
 }
 
+function hideJobs(){
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.scripting.executeScript({
+      target: { tabId: tabs[0].id },
+      function: () => {
+        const dismissButton = document.querySelector(
+          '.jobs-search-results-list__list-item--active button.job-card-container__action'
+        );
+        if (dismissButton) {
+          dismissButton.click();
+          // console.log('Dismiss job button clicked.');
+        } else {
+          console.error('Dismiss button not found.');
+        }
+      },
+    });
+  });
+}
+
 /**
  * Submits the form data to the Google Sheet when an Easy Apply has completed.
  * This could probably be reused for behavior on other sites and with other application types.
- */
-export async function sendFormDataOnEasyApply() {
-  // Identify the classes to look for
-  const applyDivClass = '.jobs-s-apply';
-  const postApplyClass = 'artdeco-inline-feedback--success';
 
-  // Get the elements
-  const jobElement = document.querySelector(applyDivClass);
+//  */
+// export async function sendFormDataOnEasyApply() {
+//   // Identify the classes to look for
+//   const applyDivClass = '.jobs-s-apply';
+//   const postApplyClass = 'artdeco-inline-feedback--success';
 
-  const MUTATION_DELAY = 2;
-  const currentUrl = window.location.href;
+//   // Get the elements
+//   const jobElement = document.querySelector(applyDivClass);
 
-  // console.log('jobElement:', jobElement);
-  if (!observer && jobElement) {
-    // Initialize the observer only if it hasn't been initialized and the job element is found
+//   const MUTATION_DELAY = 2;
+//   const currentUrl = window.location.href;
 
-    // Debounce timer variable declaration
+//   // console.log('jobElement:', jobElement);
+//   if (!observer && jobElement) {
+//     // Initialize the observer only if it hasn't been initialized and the job element is found
 
-    observer = new MutationObserver((mutations, mutationObserver) => {
-      // Clear the debounce timer on each mutation
+//     // Debounce timer variable declaration
 
-      // Reset the debounce timer
-      checkForEasyApply(mutations, postApplyClass, currentUrl);
+//     observer = new MutationObserver((mutations, mutationObserver) => {
+//       // Clear the debounce timer on each mutation
 
-      // console.log('Disconnecting observer.');
-      observer.disconnect();
-      // console.log('Observer disconnected.');
-    });
+//       // Reset the debounce timer
+//       checkForEasyApply(mutations, postApplyClass, currentUrl);
 
-    const config = { childList: true, subtree: true };
+//       // console.log('Disconnecting observer.');
+//       observer.disconnect();
+//       // console.log('Observer disconnected.');
+//     });
 
-    observer.observe(jobElement, config);
-    // console.log('Observer connected.', observer);
-  }
-}
+//     const config = { childList: true, subtree: true };
+
+//     observer.observe(jobElement, config);
+//     // console.log('Observer connected.', observer);
+//   }
+// }
 
 function checkForEasyApply(mutations, postApplyClass, url) {
   if (url !== window.location.href) {
     return;
   }
-
-  // Identify the class that indicates the application has been submitted
-  const postApplyClass = 'artdeco-inline-feedback--success';
 
   for (const mutation of mutations) {
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -349,7 +410,7 @@ export function parseUrl(url) {
       source: 'Indeed',
       url: '.vjs-highlight .jobTitle a',
     },
-    'www.glassdoor.com': {
+    'www.GlassDoor.com': {
       jobTitle: '.JobDetails_jobTitle__Rw_gn',
       company: '.EmployerProfile_employerName__Xemli',
       source: 'GlassDoor',

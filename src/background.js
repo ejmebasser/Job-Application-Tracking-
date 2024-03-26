@@ -123,3 +123,46 @@ export async function saveJob(formData) {
   // console.log('saveJob response:', response);
   return response;
 }
+
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "easyApplyClicked" && sender.tab) {
+    console.log("Easy Apply button was clicked in content script.");
+
+    // Dismiss the job in the active tab
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0 && tabs[0].id) {
+        chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          func: dismissJobDirectly,
+        }, () => {
+          // Optional: Handle errors or perform actions after the script has executed
+          if (chrome.runtime.lastError) {
+            console.error('Error executing script: ', chrome.runtime.lastError.message);
+            sendResponse({status: "Error executing dismiss script"});
+          } else {
+            console.log('Dismiss job script executed successfully.');
+            sendResponse({status: "Dismiss job action triggered"});
+          }
+        });
+      } else {
+        console.error("No active tab found.");
+        sendResponse({status: "No active tab"});
+      }
+    });
+
+    return true; // Indicates an asynchronous response (due to chrome.tabs.query being async)
+  }
+});
+
+function dismissJobDirectly() {
+    const dismissButton = document.querySelector(
+      '.jobs-search-results-list__list-item--active button.job-card-container__action'
+    );
+    if (dismissButton) {
+        dismissButton.click();
+        console.log('Dismiss job button clicked.');
+    } else {
+        console.error('Dismiss button not found.');
+    }
+}

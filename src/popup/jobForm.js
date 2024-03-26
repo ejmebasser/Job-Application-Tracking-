@@ -51,8 +51,10 @@ export default class JobForm {
 
     const appliedJobs = await this.utils.getAppliedJobs();
     const jobId = this.utils.getJobIdFromUrl(formData.url);
-    console.log('appliedJobs:', appliedJobs);
-    console.log('jobId:', jobId);
+
+    // console.log('appliedJobs:', appliedJobs);
+    // console.log('jobId:', jobId);
+
     if (appliedJobs.includes(jobId)) {
       this.utils.hideElement('#saveData');
       this.utils.appendMessage('#result', 'Job already applied to');
@@ -121,6 +123,24 @@ export default class JobForm {
         }
       );
     });
+
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.scripting.executeScript({
+        target: { tabId: tabs[0].id },
+        function: () => {
+          const dismissButton = document.querySelector(
+            '.jobs-search-results-list__list-item--active button.job-card-container__action'
+          );
+          if (dismissButton) {
+            dismissButton.click();
+            // console.log('Dismiss job button clicked.');
+          } else {
+            console.error('Dismiss button not found.');
+          }
+        },
+      });
+    })
+
   }
 
   /**
