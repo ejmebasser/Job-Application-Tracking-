@@ -3,7 +3,7 @@ let autoSave = false;
 let autoHide = false;
 let savedApplication = false;
 let observer;
-
+ 
 
 const appliedJobs = [];
 const LOAD_DELAY = 1000;
