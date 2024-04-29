@@ -1,7 +1,9 @@
+
 let autoSave = false;
 let autoHide = false;
 let savedApplication = false;
 let observer;
+
 
 const appliedJobs = [];
 const LOAD_DELAY = 1000;
@@ -79,45 +81,122 @@ function onLoad() {
   }
 }
 
-function addApplyButtonListener() {
-  document.addEventListener('click', function(event) {
+// function addApplyButtonListener() {
+//   document.addEventListener('click', async function(event) {
+//     if (event.target.matches('.jobs-apply-button') || event.target.closest('.jobs-apply-button')) {
+//       alert('Button pressed 70');
+//       let easyApply = isEasyApplyAvailable()
+//       chrome.runtime.sendMessage({action: "easyApplyClicked"}, function(response) {
+//         console.log(response.status);
+//     });
+// alert('line92'); 
+// alert('line 93');
+//       // Determine the website name based on the window.location.host or another characteristic
+//       let websiteName = 'Unknown Website'; // Default value
+//       if (window.location.href.indexOf('linkedin.com') !== -1) {
+//         websiteName = 'LinkedIn';
+//       } else if (window.location.href.indexOf('indeed.com') !== -1) {
+//         websiteName = 'Indeed';
+//       } // Add more conditions for other websites as needed
+// alert('line 101');
+//       // Example of what you might want to collect; adjust based on actual content and requirements
+//       const email = await requestUserInfo(); // Await the email from requestUserInfo
+//       alert('line 104')
+//       const jobData = {
+//         jobTitle: getText('.job-details-jobs-unified-top-card__job-title') || 'Unknown Title',
+//         company: getText('.job-details-jobs-unified-top-card__primary-description-without-tagline a') || 'Unknown Company',
+//         applicationDateTime: formatCurrentDateTime(),
+//         source: websiteName, // Add the website name here
+//         url: window.location.href,
+//         email: email, // Set the email value here
+//         applicationType:easyApply
+//       };
+
+//       // Call saveJob function with the collected job data
+//       saveJob(jobData);
+//       alert('line 109 of inject.js')
+//       // Assuming dismissJob requires a dismissButton element
+//       //nst activeJobCard = document.querySelector('.jobs-search-results-list__list-item--active-v2');
+//       const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active-v2 .job-card-container__action')?.click();
+//       if(dismissButton) {
+//         dismissJob(dismissButton);
+//       } else {
+//         console.log('Dismiss button not found.');
+//       }
+//     alert('line 118, we will try to get the email name here--417PM')
+//     const alpha = requestUserInfo()
+//     alert(alpha);
+//     const beta = fetchJobsDataAndPrepareForAPI();
+//     alert(beta);
+
+//   }
+// //alert('line 119 of inject.js hit')
+//   });
+//   //alert('line 121 of inject.js hit')
+//   //requestUserEmail()  
+// }
+//Look here 
+async function addApplyButtonListener() {
+  document.addEventListener('click', async function(event) {
     if (event.target.matches('.jobs-apply-button') || event.target.closest('.jobs-apply-button')) {
-      alert('Button pressed 70');
+      alert('Button pressed 172');
+      let easyApply = isEasyApplyAvailable()
       chrome.runtime.sendMessage({action: "easyApplyClicked"}, function(response) {
         console.log(response.status);
-    });
+      });
 
-      // Determine the website name based on the window.location.host or another characteristic
+      alert('line148'); 
+      alert('line 149');
+      
       let websiteName = 'Unknown Website'; // Default value
       if (window.location.href.indexOf('linkedin.com') !== -1) {
         websiteName = 'LinkedIn';
       } else if (window.location.href.indexOf('indeed.com') !== -1) {
         websiteName = 'Indeed';
-      } // Add more conditions for other websites as needed
+      }
 
-      // Example of what you might want to collect; adjust based on actual content and requirements
+      alert('line 158');
+      const email = await requestUserInfo(); // Properly awaiting the promise
+      alert('Email: ' + email); // Now showing the email
+
       const jobData = {
         jobTitle: getText('.job-details-jobs-unified-top-card__job-title') || 'Unknown Title',
         company: getText('.job-details-jobs-unified-top-card__primary-description-without-tagline a') || 'Unknown Company',
         applicationDateTime: formatCurrentDateTime(),
-        source: websiteName, // Add the website name here
-        url: window.location.href
+        source: websiteName,
+        url: window.location.href,
+        email: email,
+        applicationType: easyApply
       };
 
-      // Call saveJob function with the collected job data
       saveJob(jobData);
+      alert('line 173 of inject.js');
 
-      // Assuming dismissJob requires a dismissButton element
-      const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active button[aria-label="Dismiss job"]');
+      const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active-v2 .job-card-container__action')?.click();
       if(dismissButton) {
         dismissJob(dismissButton);
       } else {
         console.log('Dismiss button not found.');
       }
-    }
 
+      alert('line 182-28')
+
+      fetchJobsDataAndPrepareForAPI()
+    }
   });
 }
+
+
+function triggerTestAlert() {
+  chrome.runtime.sendMessage({ action: "invokeTestAlert" }, function(response) {
+      console.log('Response from background:', response.message);
+  });
+}
+
+// You can call this function directly or from an event, for example:
+document.addEventListener('DOMContentLoaded', function() {
+  triggerTestAlert();
+});
 
 
 /**
@@ -256,52 +335,12 @@ function hideJobs(){
   });
 }
 
-/**
- * Submits the form data to the Google Sheet when an Easy Apply has completed.
- * This could probably be reused for behavior on other sites and with other application types.
-//  */
-// export async function sendFormDataOnEasyApply() {
-//   // Identify the classes to look for
-//   const applyDivClass = '.jobs-s-apply';
-//   const postApplyClass = 'artdeco-inline-feedback--success';
-
-//   // Get the elements
-//   const jobElement = document.querySelector(applyDivClass);
-
-//   const MUTATION_DELAY = 2;
-//   const currentUrl = window.location.href;
-
-//   // console.log('jobElement:', jobElement);
-//   if (!observer && jobElement) {
-//     // Initialize the observer only if it hasn't been initialized and the job element is found
-
-//     // Debounce timer variable declaration
-
-//     observer = new MutationObserver((mutations, mutationObserver) => {
-//       // Clear the debounce timer on each mutation
-
-//       // Reset the debounce timer
-//       checkForEasyApply(mutations, postApplyClass, currentUrl);
-
-//       // console.log('Disconnecting observer.');
-//       observer.disconnect();
-//       // console.log('Observer disconnected.');
-//     });
-
-//     const config = { childList: true, subtree: true };
-
-//     observer.observe(jobElement, config);
-//     // console.log('Observer connected.', observer);
-//   }
-// }
-
-function checkForEasyApply(mutations, postApplyClass, url) {
+function checkForEasyApply(mutations, postApplyClass = 'artdeco-inline-feedback--success', url) {
   if (url !== window.location.href) {
     return;
   }
 
-  // Identify the class that indicates the application has been submitted
-  const postApplyClass = 'artdeco-inline-feedback--success';
+  // Removed the redeclaration of postApplyClass
 
   for (const mutation of mutations) {
     if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
@@ -425,6 +464,8 @@ export function parseUrl(url) {
     source: '',
     applicationDateTime: formatCurrentDateTime(),
     url: 'N/A',
+    email:'',
+    applicationType:'',
   };
 
   for (const [key, element] of Object.entries(urlMap)) {
@@ -435,8 +476,221 @@ export function parseUrl(url) {
       storage.source = element.source;
       storage.applicationDateTime = formatCurrentDateTime();
       storage.url = getURL(element.url);
+      storage.email = '';
+      storage.applicationType='';
     }
   }
 
   return storage;
+}
+
+function requestUserInfo() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get('userInfo', function(data) {
+      if (data.userInfo) {
+        resolve(data.userInfo); // Resolve with the user info
+      } else {
+        reject('No user info found.'); // Reject if no user info
+      }
+    });
+  });
+}
+
+//add in function here to figure out if its a quick apply or not:
+
+
+function isEasyApplyAvailable() {
+  // Search for a button that contains the text "Easy Apply"
+  const easyApplyButton = Array.from(document.querySelectorAll('button')).find(button => button.textContent.trim() === 'Easy Apply');
+  
+  // Return "QUICK APPLY" if such a button is found, "ADVANCED APPLY" otherwise
+  if (easyApplyButton) {
+      return "QUICK APPLY";
+  } else {
+      return "ADVANCED APPLY";
+  }
+}
+
+// // This sends a message to either a background script or directly to jobform.js if it listens for messages
+// chrome.runtime.sendMessage({action: "invokeTestAlert"}, function(response) {
+//   console.log('Response received:', response);
+// });
+
+
+
+// In inject.js
+// function fetchJobsDataAndPrepareForAPI() {
+//   chrome.runtime.sendMessage({action: "fetchJobsData"}, (response) => {
+//     if (response.success) {
+//       console.log("Data fetched:", response.data);
+//       // Process and display data here or perform further logic
+//       return response.data
+//     } else {
+//       console.error("Failed to fetch data:", response.error);
+//     }
+//   });
+// }
+
+
+// function fetchJobsDataAndPrepareForAPI() {
+//   return new Promise((resolve, reject) => {
+//     chrome.runtime.sendMessage({action: "fetchJobsData"}, (response) => {
+//       if (response.success) {
+//         console.log("Data fetched:", response.data);
+//         resolve(response.data);
+//       } else {
+//         console.error("Failed to fetch data:", response.error);
+//         reject(response.error);
+//       }
+//     });
+//   });
+// }
+
+// function sendHardcodedDataToMasterTracker() {
+//   const hardcodedData = {
+//     timestamp: new Date().toISOString(),
+//     userName: 'test@email.com',
+//     totalJobsToday: '5',
+//     totalJobsTotal: '50',
+//     advancedApplicationsToday: '2',
+//     advancedApplicationsTotal: '20',
+//     quickApplyToday: '1',
+//     quickApplyTotal: '10',
+//     jobSearchDuration: '120 minutes'
+//   };
+
+//   chrome.runtime.sendMessage({
+//     action: "submitToMasterTracker",
+//     data: hardcodedData
+//   }, response => {
+//     if (response.success) {
+//       console.log('Data submitted successfully:', response.data);
+//     } else {
+//       console.error('Failed to submit data:', response.error);
+//     }
+//   });
+// }
+
+// function fetchJobsDataAndPrepareForAPI() {
+//   return new Promise((resolve, reject) => {
+//     chrome.runtime.sendMessage({action: "fetchJobsData"}, (response) => {
+//       if (response.success) {
+//         console.log("Data fetched:", response.data);
+
+//         // Structure the data with default failure messages for missing fields
+//         const structuredData = {
+//           timestamp: new Date().toISOString(),
+//           userName: response.data.userName || 'FAILURE, HARD CODED RESPONSE', 
+//           totalJobsToday: response.data.totalJobsToday || 'FAILURE, HARD CODED RESPONSE',
+//           totalJobsTotal: response.data.totalJobsTotal || 'FAILURE, HARD CODED RESPONSE',
+//           advancedApplicationsToday: response.data.advancedApplicationsToday || 'FAILURE, HARD CODED RESPONSE',
+//           advancedApplicationsTotal: response.data.advancedApplicationsTotal || 'FAILURE, HARD CODED RESPONSE',
+//           quickApplyToday: response.data.quickApplyToday || 'FAILURE, HARD CODED RESPONSE',
+//           quickApplyTotal: response.data.quickApplyTotal || 'FAILURE, HARD CODED RESPONSE',
+//           jobSearchDuration: response.data.jobSearchDuration || 'FAILURE, HARD CODED RESPONSE'
+//         };
+
+//         // Submit the structured data
+//         chrome.runtime.sendMessage({
+//           action: "submitToMasterTracker",
+//           data: structuredData
+//         }, submitResponse => {
+//           if (submitResponse.success) {
+//             console.log('Data submitted successfully:', submitResponse.data);
+//             resolve(submitResponse.data);  // Resolve the promise with the submission response data
+//           } else {
+//             console.error('Failed to submit data:', submitResponse.error);
+//             reject(submitResponse.error);  // Reject the promise with the submission error
+//           }
+//         });
+        
+//       } else {
+//         console.error("Failed to fetch data:", response.error);
+//         reject(response.error);
+//       }
+//     });
+//   });
+// }
+
+function fetchJobsDataAndPrepareForAPI() {
+  return new Promise((resolve, reject) => {
+
+    fetchUsernameEmail().then(email => {
+      alert("Email retrieved: " + email);  // Display the retrieved email in an alert
+  
+      
+      chrome.runtime.sendMessage({action: "fetchJobsData"}, (response) => {
+        if (response.success && response.data && response.data.dataForAPI) {
+          console.log("Data fetched:", response.data);
+
+          const apiData = response.data.dataForAPI;
+
+          const structuredData = {
+            timestamp: apiData.timestamp || new Date().toISOString(),
+            totalJobsToday: typeof apiData.totalJobsToday === 'string' ? apiData.totalJobsToday : 'undefined',
+            totalJobsTotal: typeof apiData.totalJobsTotal === 'string' ? apiData.totalJobsTotal : 'undefined',
+            advancedApplicationsToday: typeof apiData.advancedApplicationsToday === 'string' ? apiData.advancedApplicationsToday : 'undefined',
+            advancedApplicationsTotal: typeof apiData.advancedApplicationsTotal === 'string' ? apiData.advancedApplicationsTotal : 'undefined',
+            quickApplyToday: typeof apiData.quickApplyToday === 'string' ? apiData.quickApplyToday : 'undefined',
+            quickApplyTotal: typeof apiData.quickApplyTotal === 'string' ? apiData.quickApplyTotal : 'undefined',
+            jobSearchDuration: typeof apiData.jobSearchDuration === 'string' ? apiData.jobSearchDuration : 'undefined',
+            userName: email || 'undefined'  // Use the fetched email in the data structure
+          };
+
+          // Submit the structured data
+          chrome.runtime.sendMessage({
+            action: "submitToMasterTracker",
+            data: structuredData
+          }, submitResponse => {
+            if (submitResponse.success) {
+              console.log('Data submitted successfully:', submitResponse.data);
+              resolve(submitResponse.data);
+            } else {
+              console.error('Failed to submit data:', submitResponse.error);
+              reject(submitResponse.error);
+            }
+          });
+
+        } else {
+          console.error("Failed to fetch data or data is improperly structured:", response.error);
+          reject("Data fetch failed or data structure incorrect");
+        }
+      });
+    }).catch(error => {
+      console.error("Failed to retrieve email:", error);
+      reject("Email retrieval failed: " + error.message);
+    });
+ 
+  });
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  fetchUsernameEmail().then(email => {
+    console.log("Email retrieved:", email);
+    // You can now use the email in your content script's logic
+  }).catch(error => {
+    console.error("Failed to retrieve email:", error);
+  });
+});
+
+function fetchUsernameEmail() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get('userInfo', (result) => {
+      if (chrome.runtime.lastError) {
+        // Handle errors during storage access
+        console.error('Error retrieving user info from chrome.storage:', chrome.runtime.lastError);
+        reject(chrome.runtime.lastError);
+      } else {
+        // Check if the userInfo exists and is not undefined
+        if (result.userInfo) {
+          console.log("Retrieved user email from storage:", result.userInfo);
+          resolve(result.userInfo);
+        } else {
+          console.log("No user info found in storage.");
+          reject(new Error("No user info found in storage."));
+        }
+      }
+    });
+  });
 }

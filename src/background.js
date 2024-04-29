@@ -1,8 +1,27 @@
+// Import the necessary modules at the top
 import OAuth from './utils/oauth';
 import Utils from './utils/utils';
 
 const utils = new Utils();
+let oauth = new OAuth();
 
+// Initialize OAuth and store user info right after OAuth has been initialized
+async function initializeAndStoreUserInfo() {
+  oauth = await initializeOauth();
+  storeUserInfo();
+}
+
+async function storeUserInfo() {
+  try {
+    const userInfo = await oauth.getUsername();
+    chrome.storage.local.set({userInfo: userInfo}, () => {
+      console.log("User info stored:", userInfo);
+    });
+  } catch (error) {
+    console.error('Error storing user info:', error);
+  }
+}
+initializeAndStoreUserInfo();
 // function that injects code to a specific tab
 export function injectScript(tabId) {
   chrome.scripting.executeScript({
@@ -110,6 +129,7 @@ export async function initializeOauth() {
  * @return {Object} The response from the appendValues method.
  */
 export async function saveJob(formData) {
+  //formData.EMAIL = "user@example.com"; // Using dot notation
   const oauth = await initializeOauth();
   // console.log('saving job');
   // console.log(oauth);
@@ -166,3 +186,139 @@ function dismissJobDirectly() {
         console.error('Dismiss button not found.');
     }
 }
+
+// At the top where you initialize OAut
+// Function to fetch user email
+async function fetchUserEmail() {
+  try {
+    const email = await oauth.getUsername();
+    return email;
+  } catch (error) {
+    console.error('Error fetching user email:', error);
+    return null;
+  }
+}
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.action === "getUserEmail") {
+    // Try to fetch the user email
+    try {
+      const email = await oauth.getUsername();
+      sendResponse({ email: email });
+    } catch (error) {
+      console.error('Error fetching user email:', error);
+      sendResponse({ error: 'Failed to fetch user email.' });
+    }
+    return true;  // Indicate you're asynchronously responding.
+  }
+});
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getUserInfo") { // Change "getUserEmail" to "getUserInfo" if that's what you're using
+    chrome.storage.local.get("userInfo", (result) => {
+      if (result.userInfo) {
+        sendResponse({ userInfo: result.userInfo });
+      } else {
+        sendResponse({ error: 'User info not found.' });
+      }
+    });
+    return true; // Indicate asynchronous response
+  }
+  // Handle other messages...
+});
+
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+  if (message.action === "submitJobTitle") {
+    // Assuming submitSimpleJobTitle is a method of a class or a standalone function that can process the data
+    // If it's a method, you'll need an instance of the class to call it
+    const jobFormInstance = new JobForm(); // You may need to properly initialize this instance
+    jobFormInstance.submitSimpleJobTitle(message.jobData)
+      .then(response => sendResponse({status: 'Success', details: response}))
+      .catch(error => sendResponse({status: 'Error', details: error}));
+  }
+  return true;  // Indicates that the response is sent asynchronously
+});
+
+const testAlert = 'This is data from the test alert on the jobform.js now in background.js'
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === "invokeTestAlert") {
+      
+      sendResponse({message: 'Alert triggered in background ' + testAlert});
+  }
+  return true; // Indicates that the response is sent asynchronously
+});
+
+// In background.js
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "fetchJobsData") {
+    // Call your OAuth and Sheets API logic here
+    getJobsData().then(data => {
+      sendResponse({success: true, data: data});
+    }).catch(error => {
+      sendResponse({success: false, error: error.toString()});
+    });
+  }
+  return true; // Return true to indicate you wish to send a response asynchronously
+});
+
+async function getJobsData() {
+  const oauth = await initializeOauth();
+  console.log(oauth);
+  //const result = await oauth.getCellValue('B1'); // No need for Promise.all if you're only fetching one value
+  const results = await Promise.all([
+    oauth.getCellValue('B1'), // Total jobs applied today
+    oauth.getCellValue('B2'), // Total jobs applied in total
+    oauth.getCellValue('D1'), // Total advanced applications today
+    oauth.getCellValue('D2'), // Total advanced applications in total
+    oauth.getCellValue('F1'), // Total quick apply today
+    oauth.getCellValue('F2'), // Total quick apply in total
+    oauth.getCellValue('H1')  // Job search duration
+  ]);
+// Map results to extract values, assuming each result is an object with a structure {values: [[value]]}
+const data = results.map(result => result.values[0][0]);
+
+// Constructing an object with all the fetched data
+const dataForAPI = {
+  totalJobsToday: data[0],
+  totalJobsTotal: data[1],
+  advancedApplicationsToday: data[2],
+  advancedApplicationsTotal: data[3],
+  quickApplyToday: data[4],
+  quickApplyTotal: data[5],
+  jobSearchDuration: data[6]
+};
+  return {
+    dataForAPI
+  };
+}
+
+
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+  if (request.action === "submitToMasterTracker") {
+    const postURL = "https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec";
+    try {
+      const response = await fetch(`${postURL}?action=addUser`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(request.data)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      sendResponse({success: true, data: data});
+    } catch (error) {
+      console.error('Error submitting data:', error);
+      sendResponse({success: false, error: error.message});
+    }
+    return true; // indicates asynchronous response
+  }
+});
+
+
