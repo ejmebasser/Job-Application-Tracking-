@@ -83,7 +83,6 @@
 //     utils.throttle(() => job.handleSubmit(), 500)
 //   );
 
-
 //   // jobForm.querySelector('#hideJob').addEventListener('click', function () {
 //   //   // Show an alert (this works only if it's within the same page or a popup)
 //   //    alert('Hide Job button clicked @ 323PM');
@@ -135,7 +134,6 @@
 //       console.error('Dismiss button not found.');
 //   }
 // }
-
 
 //   // this is what i added
 //   jobForm
@@ -207,7 +205,6 @@
 //     .querySelector('#settingsButton')
 //     .addEventListener('click', utils.toggleCogFunction);
 // });
-
 
 import Settings from './settings.js';
 import JobForm from './jobForm.js';
@@ -288,7 +285,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#getData').addEventListener('click', () => {
     jobFormInstance.submitSimpleJobTitle();
   });
-  
 
   const jobFormInstance1 = new JobForm(document.querySelector('#jobForm'));
   document.querySelector('#retrieveData').addEventListener('click', () => {
@@ -319,8 +315,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const dataSharingButton = document.querySelector('#dataSharing');
   if (dataSharingButton) {
     dataSharingButton.addEventListener('click', async function () {
-      const dataConsentCheckbox = document.querySelector('input[name="dataConsent"]');
-      const isDataSharingEnabled = dataConsentCheckbox ? dataConsentCheckbox.checked : false;
+      const dataConsentCheckbox = document.querySelector(
+        'input[name="dataConsent"]'
+      );
+      const isDataSharingEnabled = dataConsentCheckbox
+        ? dataConsentCheckbox.checked
+        : false;
       if (isDataSharingEnabled) {
         // Ensure oauth is initialized and has authToken
         try {
@@ -336,23 +336,25 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  document.querySelector('#settingsButton').addEventListener('click', utils.toggleCogFunction);
+  document
+    .querySelector('#settingsButton')
+    .addEventListener('click', utils.toggleCogFunction);
 });
 
 // Assuming the OAuth class is defined elsewhere and imported
-OAuth.prototype.getUsername = async function() {
+OAuth.prototype.getUsername = async function () {
   const userInfoUrl = 'https://openidconnect.googleapis.com/v1/userinfo';
   try {
     const response = await fetch(userInfoUrl, {
       headers: {
-        'Authorization': 'Bearer ' + this.authToken,
+        Authorization: 'Bearer ' + this.authToken,
       },
     });
     if (!response.ok) throw new Error('Failed to fetch user info');
     const userInfo = await response.json();
     // Save user email to chrome.storage.sync
     chrome.storage.sync.set({ userInfo: userInfo.email }, () => {
-      console.log("User email saved to sync storage:", userInfo.email);
+      console.log('User email saved to sync storage:', userInfo.email);
     });
     return userInfo.email;
   } catch (error) {

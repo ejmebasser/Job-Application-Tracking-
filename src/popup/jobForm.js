@@ -34,55 +34,70 @@ export default class JobForm {
     return this.oauth;
   }
 
-async submitSimpleJobTitle() {
-  alert('Fetching and submitting job application data...');
-  const postURL = "https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec";
-  const userEmail = await fetchUsernameEmail()
-  alert('userEmail '+userEmail)
-  try {
+  async submitSimpleJobTitle() {
+    alert('Fetching and submitting job application data...');
+    const postURL =
+      'https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec';
+    const userEmail = await fetchUsernameEmail();
+    alert('userEmail ' + userEmail);
+    try {
       // Fetch the data prepared for the API
       const data = await this.fetchJobsDataAndPrepareForAPI();
       if (data.error) {
-          throw new Error(data.error);
+        throw new Error(data.error);
       }
 
       // Construct dataForAPI with dynamically fetched data
       const dataForAPI = {
-          "timestamp": data.timestamp || new Date().toISOString(),
-          "totalJobsToday": data.totalJobsToday ? data.totalJobsToday[0] : 'undefined',
-          "totalJobsTotal": data.totalJobsTotal ? data.totalJobsTotal[0] : 'undefined',
-          "advancedApplicationsToday": data.advancedApplicationsToday ? data.advancedApplicationsToday[0] : 'undefined',
-          "advancedApplicationsTotal": data.advancedApplicationsTotal ? data.advancedApplicationsTotal[0] : 'undefined',
-          "quickApplyToday": data.quickApplyToday ? data.quickApplyToday[0] : 'undefined',
-          "quickApplyTotal": data.quickApplyTotal ? data.quickApplyTotal[0] : 'undefined',
-          "jobSearchDuration": data.jobSearchDuration ? data.jobSearchDuration[0] : 'undefined',
-          "userName":userEmail?userEmail:'undfined'
+        timestamp: data.timestamp || new Date().toISOString(),
+        totalJobsToday: data.totalJobsToday
+          ? data.totalJobsToday[0]
+          : 'undefined',
+        totalJobsTotal: data.totalJobsTotal
+          ? data.totalJobsTotal[0]
+          : 'undefined',
+        advancedApplicationsToday: data.advancedApplicationsToday
+          ? data.advancedApplicationsToday[0]
+          : 'undefined',
+        advancedApplicationsTotal: data.advancedApplicationsTotal
+          ? data.advancedApplicationsTotal[0]
+          : 'undefined',
+        quickApplyToday: data.quickApplyToday
+          ? data.quickApplyToday[0]
+          : 'undefined',
+        quickApplyTotal: data.quickApplyTotal
+          ? data.quickApplyTotal[0]
+          : 'undefined',
+        jobSearchDuration: data.jobSearchDuration
+          ? data.jobSearchDuration[0]
+          : 'undefined',
+        userName: userEmail ? userEmail : 'undfined',
       };
 
       console.log('Sending Data:', JSON.stringify(dataForAPI, null, 2));
 
       // Sending the prepared data to the server
       const response = await fetch(`${postURL}?action=addUser`, {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(dataForAPI)
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataForAPI),
       });
 
       if (!response.ok) {
-          const errorResponse = await response.text();
-          console.error('Failed API response:', errorResponse);
-          throw new Error(`Network response was not ok: ${errorResponse}`);
+        const errorResponse = await response.text();
+        console.error('Failed API response:', errorResponse);
+        throw new Error(`Network response was not ok: ${errorResponse}`);
       }
 
       const responseData = await response.json();
       console.log('Success:', responseData);
-  } catch (error) {
+    } catch (error) {
       //console.error('Error submitting job data:', error);
       //alert('Failed to submit job data. Please check the console for more details.');
+    }
   }
-}
 
   async fetchJobsDataAndPrepareForAPI() {
     try {
@@ -97,7 +112,7 @@ async submitSimpleJobTitle() {
         oauth.getCellValue('D2'), // Total advanced applications in total
         oauth.getCellValue('F1'), // Total quick apply today
         oauth.getCellValue('F2'), // Total quick apply in total
-        oauth.getCellValue('H1')  // Job search duration
+        oauth.getCellValue('H1'), // Job search duration
       ]);
 
       const dataForAPI = {
@@ -108,13 +123,15 @@ async submitSimpleJobTitle() {
         advancedApplicationsTotal: results[3].values[0],
         quickApplyToday: results[4].values[0],
         quickApplyTotal: results[5].values[0],
-        jobSearchDuration: results[6].values[0]
+        jobSearchDuration: results[6].values[0],
       };
-      alert("Line 115 " + JSON.stringify(dataForAPI, null, 2));
+      alert('Line 115 ' + JSON.stringify(dataForAPI, null, 2));
       return dataForAPI;
     } catch (error) {
       console.error('Error fetching job application data:', error);
-      return { error: 'Failed to fetch job application data. See console for details.' };
+      return {
+        error: 'Failed to fetch job application data. See console for details.',
+      };
     }
   }
 
@@ -156,13 +173,12 @@ async submitSimpleJobTitle() {
     const formJson = this.utils.formToObj(this.form);
     const userInfo = await requestUserInfo();
     alert(`User Info: ${JSON.stringify(userInfo, null, 2)}`);
-    const applyType = isEasyApplyAvailable()
+    const applyType = isEasyApplyAvailable();
     // Append new key-value pairs
     formJson.email = userInfo; // Using dot notation
     //formJson = formJson
-    formJson["applicationType"] = applyType; // Using bracket notation
+    formJson['applicationType'] = applyType; // Using bracket notation
     alert(JSON.stringify(formJson, null, 2));
-
 
     const saveButtonId = '#saveData';
     const saveButton = this.form.querySelector(saveButtonId);
@@ -177,7 +193,7 @@ async submitSimpleJobTitle() {
       .appendValues(formJson)
       .then((response) => {
         if (response.status >= 200 && response.status < 300) {
-          alert('it worked')
+          alert('it worked');
           const jobId = this.utils.getJobIdFromUrl(formJson.url);
           this.utils.addJobToApplied(jobId);
 
@@ -191,12 +207,9 @@ async submitSimpleJobTitle() {
           // fetch the total jobs applied to today from Google Apps Script
           this.fetchTotalJobsAppliedToday();
 
-          alert('testing data sharing')
+          alert('testing data sharing');
 
           //Assuming that data sharing is on:
-
-
-
         } else {
           console.error('Error:', response);
           this.utils.appendMessage('#result', 'Error submitting data');
@@ -240,7 +253,7 @@ async submitSimpleJobTitle() {
         },
       });
     });
-    alert('line 434')
+    alert('line 434');
     await this.submitSimpleJobTitle();
   }
 
@@ -313,7 +326,7 @@ async submitSimpleJobTitle() {
         oauth.getCellValue('D2'), // Total advanced applications in total
         oauth.getCellValue('F1'), // Total quick apply today
         oauth.getCellValue('F2'), // Total quick apply in total
-        oauth.getCellValue('H1')  // Job search duration
+        oauth.getCellValue('H1'), // Job search duration
       ]);
 
       // Constructing a message from the fetched values, including the time
@@ -332,15 +345,17 @@ async submitSimpleJobTitle() {
       alert(alertMessage);
     } catch (error) {
       console.error('Error fetching job application data:', error);
-      alert('Error fetching job application data. Please check the console for more details.');
+      alert(
+        'Error fetching job application data. Please check the console for more details.'
+      );
     }
   }
 
-
   async retrieveData() {
-    alert("jobForm line 254")
+    alert('jobForm line 254');
 
-    const getURL = "https://script.google.com/macros/s/AKfycbwJno2QaJwmhEJ4Glf7yKixDRCQxKggD2jCXSHxGwnGw-ZWY3aT9_bEL-4iXncORf9B/exec";
+    const getURL =
+      'https://script.google.com/macros/s/AKfycbwJno2QaJwmhEJ4Glf7yKixDRCQxKggD2jCXSHxGwnGw-ZWY3aT9_bEL-4iXncORf9B/exec';
     try {
       const response = await fetch(`${getURL}?action=getUsers`, {
         method: 'GET',
@@ -353,7 +368,6 @@ async submitSimpleJobTitle() {
       console.error('Error fetching users:', error);
       alert('Error fetching data. Please check the console for more details.');
     }
-
   }
 
   /**
@@ -401,35 +415,38 @@ async function requestUserInfo() {
   }
 }
 
-
 function isEasyApplyAvailable() {
   // Search for a button that contains the text "Easy Apply"
-  const easyApplyButton = Array.from(document.querySelectorAll('button')).find(button => button.textContent.trim() === 'Easy Apply');
+  const easyApplyButton = Array.from(document.querySelectorAll('button')).find(
+    (button) => button.textContent.trim() === 'Easy Apply'
+  );
 
   // Return "QUICK APPLY" if such a button is found, "ADVANCED APPLY" otherwise
   if (easyApplyButton) {
-    return "QUICK APPLY";
+    return 'QUICK APPLY';
   } else {
-    return "ADVANCED APPLY";
+    return 'ADVANCED APPLY';
   }
 }
-
 
 function fetchUsernameEmail() {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get('userInfo', (result) => {
       if (chrome.runtime.lastError) {
         // Handle errors during storage access
-        console.error('Error retrieving user info from chrome.storage:', chrome.runtime.lastError);
+        console.error(
+          'Error retrieving user info from chrome.storage:',
+          chrome.runtime.lastError
+        );
         reject(chrome.runtime.lastError);
       } else {
         // Check if the userInfo exists and is not undefined
         if (result.userInfo) {
-          console.log("Retrieved user email from storage:", result.userInfo);
+          console.log('Retrieved user email from storage:', result.userInfo);
           resolve(result.userInfo);
         } else {
-          console.log("No user info found in storage.");
-          reject(new Error("No user info found in storage."));
+          console.log('No user info found in storage.');
+          reject(new Error('No user info found in storage.'));
         }
       }
     });
@@ -439,10 +456,10 @@ function fetchUsernameEmail() {
 // Make sure this code exists in a context where chrome.runtime.onMessage is accessible
 // Typically this would be in a background script or a content script
 
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === "invokeTestAlert") {
-      testAlert();
-      sendResponse({message: 'Alert displayed successfully'});
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.action === 'invokeTestAlert') {
+    testAlert();
+    sendResponse({ message: 'Alert displayed successfully' });
   }
 });
 

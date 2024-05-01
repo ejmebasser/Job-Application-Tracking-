@@ -175,7 +175,6 @@
 // //       });
 // //   }
 
-
 // //   async getUserInfo() {
 // //     const userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
 // //     try {
@@ -192,7 +191,6 @@
 // //     }
 // //   }
 // // }
-
 
 // export default class OAuth {
 //   constructor() {
@@ -311,7 +309,6 @@
 //   }
 // }
 
-
 export default class OAuth {
   constructor() {
     this.getOAuth();
@@ -325,7 +322,7 @@ export default class OAuth {
 
   getAuthToken() {
     return new Promise((resolve, reject) => {
-      chrome.identity.getAuthToken({ interactive: true }, function(token) {
+      chrome.identity.getAuthToken({ interactive: true }, function (token) {
         if (chrome.runtime.lastError) {
           console.error(chrome.runtime.lastError.message);
           reject(chrome.runtime.lastError.message);
@@ -337,7 +334,8 @@ export default class OAuth {
   }
 
   getSheets() {
-    const url = 'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"&orderBy=modifiedTime desc';
+    const url =
+      'https://www.googleapis.com/drive/v3/files?q=mimeType="application/vnd.google-apps.spreadsheet"&orderBy=modifiedTime desc';
     return fetch(url, {
       headers: {
         Authorization: 'Bearer ' + this.authToken,
@@ -374,7 +372,10 @@ export default class OAuth {
   }
 
   async getCellValue(cell) {
-    let { sheetId, sheetName } = await chrome.storage.sync.get(['sheetId', 'sheetName']);
+    let { sheetId, sheetName } = await chrome.storage.sync.get([
+      'sheetId',
+      'sheetName',
+    ]);
     sheetName += '!' + cell;
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}`;
     return fetch(url, {
@@ -387,14 +388,25 @@ export default class OAuth {
   }
 
   async appendValues(data) {
-    const { sheetId, sheetName } = await chrome.storage.sync.get(['sheetId', 'sheetName']);
+    const { sheetId, sheetName } = await chrome.storage.sync.get([
+      'sheetId',
+      'sheetName',
+    ]);
     const valueInputOption = 'USER_ENTERED';
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}:append?valueInputOption=${valueInputOption}`;
     const resource = {
       range: sheetName,
       majorDimension: 'ROWS',
       values: [
-        [data.jobTitle, data.company, data.source, data.applicationDateTime, data.url, data.email,data.applicationType],
+        [
+          data.jobTitle,
+          data.company,
+          data.source,
+          data.applicationDateTime,
+          data.url,
+          data.email,
+          data.applicationType,
+        ],
       ],
     };
     return fetch(url, {
