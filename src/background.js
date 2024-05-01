@@ -6,7 +6,81 @@ import Utils from './utils/utils';
 const utils = new Utils();
 let oauth = new OAuth();
 
-// Initialize OAuth and store user info right after OAuth has been initialized
+// Call the function to initialize OAuth and store user info
+initializeAndStoreUserInfo();
+
+// Listen for tab updates
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  // console.log('changeInfo', changeInfo);
+  // check for a URL in the changeInfo parameter (url is only added when it is changed)
+  if (changeInfo.status === 'complete') {
+    console.log('tab updated, sending reset message');
+    // inject the script to the tab
+    setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
+  }
+});
+
+// Listen for runtime messages
+chrome.runtime.onMessage.addListener(
+  async function (message, sender, sendResponse) {
+    switch (message.action) {
+      case 'saveJob':
+        // console.log('saving job');
+        const response = saveJob(message.formData);
+        // LinkedIn closes the connection and there is likely no listener to receive the response
+        // console.log('addListener response:', response);
+        sendResponse(response);
+        break;
+      case 'addJobToApplied':
+        utils.addJobToApplied(message.jobId);
+        break;
+      case 'ready':
+        onLoad();
+        break;
+      case 'easyApplyClicked':
+        handleEasyApplyClicked(sender.tab, sendResponse);
+        break;
+      case 'getUserEmail':
+        handleGetUserEmail(sendResponse);
+        break;
+      case 'getUserInfo':
+        handleGetUserInfo(sendResponse);
+        break;
+      case 'submitJobTitle':
+        handleSubmitJobTitle(message.jobData, sendResponse);
+        break;
+      case 'invokeTestAlert':
+        const testAlert =
+          'This is data from the test alert on the jobform.js now in background.js';
+        sendResponse({ message: 'Alert triggered in background' + testAlert });
+        break;
+      case 'fetchJobsData':
+        handleFetchJobsData(sendResponse);
+        break;
+      case 'submitToMasterTracker':
+        handleSubmitToMasterTracker(message.data, sendResponse);
+      default:
+        sendResponse({ error: 'Invalid action' });
+        break;
+    }
+
+    // if the listener is an async function, it must return true
+    return true;
+  }
+);
+
+// Open the popup when the extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.tabs.openPopup();
+});
+
+/**
+ * Begin function definition section
+ */
+
+/**
+ * Initialize OAuth and store user info right after OAuth has been initialized
+ */
 async function initializeAndStoreUserInfo() {
   oauth = await initializeOauth();
   storeUserInfo();
@@ -19,17 +93,18 @@ async function storeUserInfo() {
   try {
     const userInfo = await oauth.getUsername();
     chrome.storage.local.set({ userInfo: userInfo }, () => {
-      console.log('User info stored:', userInfo);
+      // console.log('User info stored:', userInfo);
     });
   } catch (error) {
     console.error('Error storing user info:', error);
   }
 }
 
-// Call the function to initialize OAuth and store user info
-initializeAndStoreUserInfo();
-
-// function that injects code to a specific tab
+/**
+ * injects the script into the given tab
+ *
+ * @param {number} tabId
+ */
 export function injectScript(tabId) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
@@ -70,52 +145,6 @@ async function onLoad() {
   });
 }
 
-// listen for tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  // console.log('changeInfo', changeInfo);
-  // check for a URL in the changeInfo parameter (url is only added when it is changed)
-  if (changeInfo.status === 'complete') {
-    console.log('tab updated, sending reset message');
-    // inject the script to the tab
-    setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
-  }
-});
-
-// Open the popup when the extension icon is clicked
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.openPopup();
-});
-
-/**
- *  Adds a listener for the 'saveJob' action.
- *  This will save the sheetURL to the chrome storage.
- */
-chrome.runtime.onMessage.addListener(
-  async function (message, sender, sendResponse) {
-    // console.log('message:', message);
-    if (message.action === 'saveJob') {
-      // console.log('saving job');
-      const response = saveJob(message.formData);
-      // LinkedIn closes the connection and there is likely no listener to receive the response
-      // console.log('addListener response:', response);
-      sendResponse(response);
-    }
-
-    if (message.action === 'addJobToApplied') {
-      // console.log('adding job to applied');
-      utils.addJobToApplied(message.jobId);
-    }
-
-    if (message.action === 'ready') {
-      // console.log('inject ready');
-      onLoad();
-    }
-
-    // if the listener is an async function, it must return true
-    return true;
-  }
-);
-
 /**
  * Initializes the OAuth object, for use in the background script.
  *
@@ -152,46 +181,50 @@ export async function saveJob(formData) {
 }
 
 /**
- * Adds a listener for the 'easyApplyClicked' action.
+ * Function to handle the 'easyApplyClicked' action.
+ *
+ * @param {*} senderTab The tab that sent the message.
+ * @param {*} sendResponse The function to send a response back to the sender.
  */
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'easyApplyClicked' && sender.tab) {
-    console.log('Easy Apply button was clicked in content script.');
-
-    // Dismiss the job in the active tab
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0 && tabs[0].id) {
-        chrome.scripting.executeScript(
-          {
-            target: { tabId: tabs[0].id },
-            func: dismissJobDirectly,
-          },
-          () => {
-            // Optional: Handle errors or perform actions after the script has executed
-            if (chrome.runtime.lastError) {
-              console.error(
-                'Error executing script: ',
-                chrome.runtime.lastError.message
-              );
-              sendResponse({ status: 'Error executing dismiss script' });
-            } else {
-              console.log('Dismiss job script executed successfully.');
-              sendResponse({ status: 'Dismiss job action triggered' });
-            }
-          }
-        );
-      } else {
-        console.error('No active tab found.');
-        sendResponse({ status: 'No active tab' });
-      }
-    });
-
-    return true; // Indicates an asynchronous response (due to chrome.tabs.query being async)
+function handleEasyApplyClicked(senderTab, sendResponse) {
+  if (!senderTab) {
+    return;
   }
-});
+
+  console.log('Easy Apply button was clicked in content script.');
+
+  // Dismiss the job in the active tab
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs.length > 0 && tabs[0].id) {
+      chrome.scripting.executeScript(
+        {
+          target: { tabId: tabs[0].id },
+          func: dismissJobDirectly,
+        },
+        () => {
+          // Optional: Handle errors or perform actions after the script has executed
+          if (chrome.runtime.lastError) {
+            console.error(
+              'Error executing script: ',
+              chrome.runtime.lastError.message
+            );
+            sendResponse({ status: 'Error executing dismiss script' });
+          } else {
+            console.log('Dismiss job script executed successfully.');
+            sendResponse({ status: 'Dismiss job action triggered' });
+          }
+        }
+      );
+    } else {
+      console.error('No active tab found.');
+      sendResponse({ status: 'No active tab' });
+    }
+  });
+}
 
 /**
  * Dismisses the job directly by clicking the dismiss button.
+ * The current implementation only works on LinkedIn.
  */
 function dismissJobDirectly() {
   const dismissButton = document.querySelector(
@@ -217,75 +250,72 @@ async function fetchUserEmail() {
   }
 }
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.action === 'getUserEmail') {
-    // Try to fetch the user email
-    try {
-      const email = await oauth.getUsername();
-      sendResponse({ email: email });
-    } catch (error) {
-      console.error('Error fetching user email:', error);
-      sendResponse({ error: 'Failed to fetch user email.' });
+/**
+ * Function to handle the 'getUserEmail' action.
+ *
+ * @param {*} sendResponse The function to send a response back to the sender.
+ */
+async function handleGetUserEmail(sendResponse) {
+  try {
+    const email = await oauth.getUsername();
+    sendResponse({ email: email });
+  } catch (error) {
+    console.error('Error fetching user email:', error);
+    sendResponse({ error: 'Failed to fetch user email.' });
+  }
+}
+
+/**
+ * Function to handle the 'getUserInfo' action.
+ *
+ * @param {*} sendResponse The function to send a response back to the sender.
+ */
+async function handleGetUserInfo(sendResponse) {
+  chrome.storage.local.get('userInfo', (result) => {
+    if (result.userInfo) {
+      sendResponse({ userInfo: result.userInfo });
+    } else {
+      sendResponse({ error: 'User info not found.' });
     }
-    return true; // Indicate you're asynchronously responding.
-  }
-});
+  });
+}
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getUserInfo') {
-    // Change "getUserEmail" to "getUserInfo" if that's what you're using
-    chrome.storage.local.get('userInfo', (result) => {
-      if (result.userInfo) {
-        sendResponse({ userInfo: result.userInfo });
-      } else {
-        sendResponse({ error: 'User info not found.' });
-      }
+/**
+ * Function to handle the 'submitJobTitle' action.
+ *
+ * @param {Object} jobData The message paramater containing the job data.
+ * @param {*} sendResponse The function to send a response back to the sender.
+ */
+function handleSubmitJobTitle(jobData, sendResponse) {
+  // Assuming submitSimpleJobTitle is a method of a class or a standalone function that can process the data
+  // If it's a method, you'll need an instance of the class to call it
+  const jobFormInstance = new JobForm(); // You may need to properly initialize this instance
+  jobFormInstance
+    .submitSimpleJobTitle(jobData)
+    .then((response) => sendResponse({ status: 'Success', details: response }))
+    .catch((error) => sendResponse({ status: 'Error', details: error }));
+}
+
+/**
+ * Function to handle the 'fetchJobsData' action.
+ *
+ * @param {*} sendResponse The function to send a response back to the sender.
+ */
+function handleFetchJobsData(sendResponse) {
+  getJobsData()
+    .then((data) => {
+      sendResponse({ success: true, data: data });
+    })
+    .catch((error) => {
+      sendResponse({ success: false, error: error.toString() });
     });
-    return true; // Indicate asynchronous response
-  }
-  // Handle other messages...
-});
+}
 
-chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
-  if (message.action === 'submitJobTitle') {
-    // Assuming submitSimpleJobTitle is a method of a class or a standalone function that can process the data
-    // If it's a method, you'll need an instance of the class to call it
-    const jobFormInstance = new JobForm(); // You may need to properly initialize this instance
-    jobFormInstance
-      .submitSimpleJobTitle(message.jobData)
-      .then((response) =>
-        sendResponse({ status: 'Success', details: response })
-      )
-      .catch((error) => sendResponse({ status: 'Error', details: error }));
-  }
-  return true; // Indicates that the response is sent asynchronously
-});
-
-const testAlert =
-  'This is data from the test alert on the jobform.js now in background.js';
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'invokeTestAlert') {
-    sendResponse({ message: 'Alert triggered in background ' + testAlert });
-  }
-  return true; // Indicates that the response is sent asynchronously
-});
-
-// In background.js
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'fetchJobsData') {
-    // Call your OAuth and Sheets API logic here
-    getJobsData()
-      .then((data) => {
-        sendResponse({ success: true, data: data });
-      })
-      .catch((error) => {
-        sendResponse({ success: false, error: error.toString() });
-      });
-  }
-  return true; // Return true to indicate you wish to send a response asynchronously
-});
-
+/**
+ * Get the jobs data from the Google Sheet. This is for job analytics.
+ *
+ * @return {Object} The object containing the jobs data.
+ */
 async function getJobsData() {
   const oauth = await initializeOauth();
   console.log(oauth);
@@ -299,6 +329,7 @@ async function getJobsData() {
     oauth.getCellValue('F2'), // Total quick apply in total
     oauth.getCellValue('H1'), // Job search duration
   ]);
+
   // Map results to extract values, assuming each result is an object with a structure {values: [[value]]}
   const data = results.map((result) => result.values[0][0]);
 
@@ -312,34 +343,41 @@ async function getJobsData() {
     quickApplyTotal: data[5],
     jobSearchDuration: data[6],
   };
+
+  // Why is this an object containing an object?
   return {
     dataForAPI,
   };
 }
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.action === 'submitToMasterTracker') {
-    const postURL =
-      'https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec';
-    try {
-      const response = await fetch(`${postURL}?action=addUser`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(request.data),
-      });
+/**
+ * Function to handle the 'submitToMasterTracker' action.
+ * This uses a Google Apps Script web app to submit data to a master tracker.
+ *
+ * @param {Object} requestData The message parameter containing the data to be submitted.
+ * @param {*} sendResponse The function to send a response back to the sender.
+ */
+async function handleSubmitToMasterTracker(requestData, sendResponse) {
+  const postURL =
+    'https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec';
+  try {
+    const response = await fetch(`${postURL}?action=addUser`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      sendResponse({ success: true, data: data });
-    } catch (error) {
-      console.error('Error submitting data:', error);
-      sendResponse({ success: false, error: error.message });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return true; // indicates asynchronous response
+
+    const data = await response.json();
+    sendResponse({ success: true, data: data });
+  } catch (error) {
+    console.error('Error submitting data:', error);
+    sendResponse({ success: false, error: error.message });
   }
-});
+  return true; // indicates asynchronous response
+}
