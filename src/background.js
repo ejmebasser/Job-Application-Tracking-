@@ -91,7 +91,7 @@ async function initializeAndStoreUserInfo() {
  */
 async function storeUserInfo() {
   try {
-    const userInfo = await oauth.getUsername();
+    const userInfo = await oauth.getUserEmail();
     chrome.storage.local.set({ userInfo: userInfo }, () => {
       // console.log('User info stored:', userInfo);
     });
@@ -242,7 +242,7 @@ function dismissJobDirectly() {
 // Function to fetch user email
 async function fetchUserEmail() {
   try {
-    const email = await oauth.getUsername();
+    const email = await oauth.getUserEmail();
     return email;
   } catch (error) {
     console.error('Error fetching user email:', error);
@@ -257,7 +257,7 @@ async function fetchUserEmail() {
  */
 async function handleGetUserEmail(sendResponse) {
   try {
-    const email = await oauth.getUsername();
+    const email = await oauth.getUserEmail();
     sendResponse({ email: email });
   } catch (error) {
     console.error('Error fetching user email:', error);
