@@ -1,5 +1,5 @@
-import OAuth from '../utils/oauth';
-import Utils from '../utils/utils';
+import OAuth from '../../user/oauth';
+import Utils from '../../utils/utils';
 
 /**
  * Class to handle the settings form.
@@ -61,7 +61,6 @@ export default class Settings {
    */
   buildSheetURL(sheetId) {
     return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/edit#gid=0';
-    // THE HYPER LINK TO THE SHEET.
   }
 
   createSheetLink(sheetId) {
@@ -72,7 +71,6 @@ export default class Settings {
     link.target = '_blank';
     this.sheetElement.appendChild(link);
   }
-  // THIS IS THE HYPER LINK
 
   /**
    * Update the values of the settings fields from stored values.

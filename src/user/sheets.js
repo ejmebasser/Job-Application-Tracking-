@@ -1,46 +1,10 @@
-/**
- * OAuth class to handle Google OAuth2.0
- 
- */
-export default class OAuth {
-  /**
-   * Constructor for OAuth class
-   */
+import OAuth from './oauth';
+
+export default class Sheets extends OAuth {
   constructor() {
-    this.getOAuth();
-    this.searchFile = this.getSheets.bind(this);
-  }
+    super();
 
-  /**
-   * We cannot use async/await in the constructor, so we use this function to ensure that the OAuth object is available and has been authorized.
-   * We also set the authToken property.
-   *
-   * I really don't like this. It seems like a poor singleton attempt.
-   * There is probably a better way to handle this.
-   *
-   * @return {OAuth} The OAuth object.
-   */
-  async getOAuth() {
-    this.authToken = await this.getAuthToken();
-    return this;
-  }
-
-  /**
-   * Function to get the authToken from chrome.identity.
-   *
-   * @return {string} The OAuth token.
-   */
-  getAuthToken() {
-    return new Promise((resolve, reject) => {
-      chrome.identity.getAuthToken({ interactive: true }, function (token) {
-        if (chrome.runtime.lastError) {
-          console.error(chrome.runtime.lastError.message);
-          reject(chrome.runtime.lastError.message);
-        } else {
-          resolve(token);
-        }
-      });
-    });
+    this.getCellValue = this.getCellValue.bind(this);
   }
 
   /**
@@ -158,31 +122,61 @@ export default class OAuth {
   }
 
   /**
-   * Get the email of the authenticated user.
+   * Get the jobs data from the Google Sheet. This is for job analytics.
    *
-   * @return {string} The email of the authenticated user.
+   * @return {Object} The object containing the jobs data.
    */
-  async getUserEmail() {
-    // we should have this information already since we are using chrome.identity
-    const currentUser = chrome.identity.getProfileUserInfo();
-    console.log(currentUser);
-    return currentUser.email;
+  async getJobsData() {
+    console.log(this);
+    //const result = await oauth.getCellValue('B1'); // No need for Promise.all if you're only fetching one value
+    const results = await Promise.all([
+      this.getCellValue('B1'), // Total jobs applied today
+      this.getCellValue('B2'), // Total jobs applied in total
+      this.getCellValue('D1'), // Total advanced applications today
+      this.getCellValue('D2'), // Total advanced applications in total
+      this.getCellValue('F1'), // Total quick apply today
+      this.getCellValue('F2'), // Total quick apply in total
+      this.getCellValue('H1'), // Job search duration
+    ]);
 
-    // const userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
-    // try {
-    //   const response = await fetch(userInfoUrl, {
-    //     headers: {
-    //       Authorization: 'Bearer ' + this.authToken,
-    //     },
-    //   });
-    //   if (!response.ok) {
-    //     throw new Error('Failed to fetch user info');
-    //   }
-    //   const userInfo = await response.json();
-    //   return userInfo.email; // This assumes you want to use the email as the username
-    // } catch (error) {
-    //   console.error('Error fetching user info:', error);
-    //   throw error;
-    // }
+    // Map results to extract values, assuming each result is an object with a structure {values: [[value]]}
+    const data = results.map((result) => result.values[0][0]);
+
+    // Constructing an object with all the fetched data
+    const dataForAPI = {
+      totalJobsToday: data[0],
+      totalJobsTotal: data[1],
+      advancedApplicationsToday: data[2],
+      advancedApplicationsTotal: data[3],
+      quickApplyToday: data[4],
+      quickApplyTotal: data[5],
+      jobSearchDuration: data[6],
+    };
+
+    // Why is this an object containing an object?
+    return {
+      dataForAPI,
+    };
+  }
+
+  async fetchJobsDataAndPrepareForAPI() {
+    try {
+      const currentTime = new Date();
+      const formattedTime = currentTime.toISOString(); // Use ISO format for API data
+
+      const jobsData = await this.getJobsData();
+      const dataForAPI = {
+        timestamp: formattedTime,
+        ...jobsData.dataForAPI,
+      };
+
+      alert('Line 115 ' + JSON.stringify(dataForAPI, null, 2));
+      return dataForAPI;
+    } catch (error) {
+      console.error('Error fetching job application data:', error);
+      return {
+        error: 'Failed to fetch job application data. See console for details.',
+      };
+    }
   }
 }

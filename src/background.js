@@ -1,13 +1,18 @@
 // Import the necessary modules at the top
-import OAuth from './utils/oauth';
+import OAuth from './user/oauth';
+import Sheets from './user/sheets';
+import User from './user/user';
 import Utils from './utils/utils';
+import './utils/chrome';
 
-// Initilize the OAuth and Utils instances
+// Initilize the needed class instances
 const utils = new Utils();
-let oauth = new OAuth();
+const oauth = initializeOauth();
+const sheets = new Sheets();
+const user = new User();
 
-// Call the function to initialize OAuth and store user info
-initializeAndStoreUserInfo();
+// Call the function to store user info
+storeUserInfo();
 
 // Listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
@@ -79,19 +84,11 @@ chrome.action.onClicked.addListener(() => {
  */
 
 /**
- * Initialize OAuth and store user info right after OAuth has been initialized
- */
-async function initializeAndStoreUserInfo() {
-  oauth = await initializeOauth();
-  storeUserInfo();
-}
-
-/**
  * Stores the user info in the Chrome storage.
  */
 async function storeUserInfo() {
   try {
-    const userInfo = await oauth.getUserEmail();
+    const userInfo = await user.getUserEmail();
     chrome.storage.local.set({ userInfo: userInfo }, () => {
       // console.log('User info stored:', userInfo);
     });
@@ -110,20 +107,6 @@ export function injectScript(tabId) {
     target: { tabId: tabId },
     files: ['dist/inject.bundle.js'],
   });
-}
-
-/**
- * Gets the current tab ID.
- *
- * @return {number} The current tab ID.
- */
-async function getCurrentTabId() {
-  let [response] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  });
-  // console.log('response:', response);
-  return 'id' in response ? response.id : -1;
 }
 
 /**
@@ -146,31 +129,14 @@ async function onLoad() {
 }
 
 /**
- * Initializes the OAuth object, for use in the background script.
- *
- * @return {OAuth} The OAuth object.
-
- */
-export async function initializeOauth() {
-  let oauth = new OAuth();
-  oauth = await oauth.getOAuth();
-
-  return oauth;
-}
-
-/**
  * Saves the form data to the Google Sheet.
  *
  * @param {Object} formData The form data to be saved to the Google Sheet.
  * @return {Object} The response from the appendValues method.
  */
 export async function saveJob(formData) {
-  //formData.EMAIL = "user@example.com"; // Using dot notation
-  const oauth = await initializeOauth();
-  // console.log('saving job');
-  // console.log(oauth);
-
-  const response = await oauth.appendValues(formData);
+  // We are now initializing OAuth in the background script at the top
+  const response = await sheets.appendValues(formData);
 
   const jobId = utils.getJobIdFromUrl(formData.url);
   utils.addJobToApplied(jobId);
@@ -238,18 +204,6 @@ function dismissJobDirectly() {
   }
 }
 
-// At the top where you initialize OAut
-// Function to fetch user email
-async function fetchUserEmail() {
-  try {
-    const email = await oauth.getUserEmail();
-    return email;
-  } catch (error) {
-    console.error('Error fetching user email:', error);
-    return null;
-  }
-}
-
 /**
  * Function to handle the 'getUserEmail' action.
  *
@@ -257,7 +211,7 @@ async function fetchUserEmail() {
  */
 async function handleGetUserEmail(sendResponse) {
   try {
-    const email = await oauth.getUserEmail();
+    const email = await user.getUserEmail();
     sendResponse({ email: email });
   } catch (error) {
     console.error('Error fetching user email:', error);
@@ -302,82 +256,12 @@ function handleSubmitJobTitle(jobData, sendResponse) {
  * @param {*} sendResponse The function to send a response back to the sender.
  */
 function handleFetchJobsData(sendResponse) {
-  getJobsData()
+  sheets
+    .getJobsData()
     .then((data) => {
       sendResponse({ success: true, data: data });
     })
     .catch((error) => {
       sendResponse({ success: false, error: error.toString() });
     });
-}
-
-/**
- * Get the jobs data from the Google Sheet. This is for job analytics.
- *
- * @return {Object} The object containing the jobs data.
- */
-async function getJobsData() {
-  const oauth = await initializeOauth();
-  console.log(oauth);
-  //const result = await oauth.getCellValue('B1'); // No need for Promise.all if you're only fetching one value
-  const results = await Promise.all([
-    oauth.getCellValue('B1'), // Total jobs applied today
-    oauth.getCellValue('B2'), // Total jobs applied in total
-    oauth.getCellValue('D1'), // Total advanced applications today
-    oauth.getCellValue('D2'), // Total advanced applications in total
-    oauth.getCellValue('F1'), // Total quick apply today
-    oauth.getCellValue('F2'), // Total quick apply in total
-    oauth.getCellValue('H1'), // Job search duration
-  ]);
-
-  // Map results to extract values, assuming each result is an object with a structure {values: [[value]]}
-  const data = results.map((result) => result.values[0][0]);
-
-  // Constructing an object with all the fetched data
-  const dataForAPI = {
-    totalJobsToday: data[0],
-    totalJobsTotal: data[1],
-    advancedApplicationsToday: data[2],
-    advancedApplicationsTotal: data[3],
-    quickApplyToday: data[4],
-    quickApplyTotal: data[5],
-    jobSearchDuration: data[6],
-  };
-
-  // Why is this an object containing an object?
-  return {
-    dataForAPI,
-  };
-}
-
-/**
- * Function to handle the 'submitToMasterTracker' action.
- * This uses a Google Apps Script web app to submit data to a master tracker.
- *
- * @param {Object} requestData The message parameter containing the data to be submitted.
- * @param {*} sendResponse The function to send a response back to the sender.
- */
-async function handleSubmitToMasterTracker(requestData, sendResponse) {
-  const postURL =
-    'https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec';
-  try {
-    const response = await fetch(`${postURL}?action=addUser`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestData),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    sendResponse({ success: true, data: data });
-  } catch (error) {
-    console.error('Error submitting data:', error);
-    sendResponse({ success: false, error: error.message });
-  }
-  return true; // indicates asynchronous response
 }

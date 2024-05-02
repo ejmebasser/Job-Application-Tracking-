@@ -7,6 +7,7 @@ module.exports = {
   testMatch: ['**/tests/**/*.test.js'],
   setupFiles: ['./tests/setup/jest.setup.js', './tests/setup/chrome.setup.js'],
   testEnvironment: 'jsdom',
+  // you can uncomment this portion and adjust to cause Jest to fail for incomplete coverage
   // coverageThreshold: {
   //   global: {
   //     functions: 60,

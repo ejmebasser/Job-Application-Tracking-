@@ -3,7 +3,7 @@ const path = require('path');
 module.exports = {
   entry: {
     background: './src/background.js',
-    popup: './src/popup/main.js',
+    popup: './src/main.js',
     inject: './src/inject.js',
   },
   mode: 'none',

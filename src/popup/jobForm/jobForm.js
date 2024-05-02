@@ -1,5 +1,5 @@
-import OAuth from '../utils/oauth.js';
-import Utils from '../utils/utils.js';
+import OAuth from '../../user/oauth.js';
+import Utils from '../../utils/utils.js';
 
 /**
  * Class to handle the job form in the popup.
@@ -32,107 +32,6 @@ export default class JobForm {
     }
 
     return this.oauth;
-  }
-
-  async submitSimpleJobTitle() {
-    alert('Fetching and submitting job application data...');
-    const postURL =
-      'https://script.google.com/macros/s/AKfycbwCoexkvlaRrF1UjGMpWzV5U_A5Esj7xq-mufXbIogBGf0Kn0U4SmzFihL_F_qn1GyF/exec';
-    const userEmail = await fetchUsernameEmail();
-    alert('userEmail ' + userEmail);
-    try {
-      // Fetch the data prepared for the API
-      const data = await this.fetchJobsDataAndPrepareForAPI();
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Construct dataForAPI with dynamically fetched data
-      const dataForAPI = {
-        timestamp: data.timestamp || new Date().toISOString(),
-        totalJobsToday: data.totalJobsToday
-          ? data.totalJobsToday[0]
-          : 'undefined',
-        totalJobsTotal: data.totalJobsTotal
-          ? data.totalJobsTotal[0]
-          : 'undefined',
-        advancedApplicationsToday: data.advancedApplicationsToday
-          ? data.advancedApplicationsToday[0]
-          : 'undefined',
-        advancedApplicationsTotal: data.advancedApplicationsTotal
-          ? data.advancedApplicationsTotal[0]
-          : 'undefined',
-        quickApplyToday: data.quickApplyToday
-          ? data.quickApplyToday[0]
-          : 'undefined',
-        quickApplyTotal: data.quickApplyTotal
-          ? data.quickApplyTotal[0]
-          : 'undefined',
-        jobSearchDuration: data.jobSearchDuration
-          ? data.jobSearchDuration[0]
-          : 'undefined',
-        userName: userEmail ? userEmail : 'undfined',
-      };
-
-      console.log('Sending Data:', JSON.stringify(dataForAPI, null, 2));
-
-      // Sending the prepared data to the server
-      const response = await fetch(`${postURL}?action=addUser`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dataForAPI),
-      });
-
-      if (!response.ok) {
-        const errorResponse = await response.text();
-        console.error('Failed API response:', errorResponse);
-        throw new Error(`Network response was not ok: ${errorResponse}`);
-      }
-
-      const responseData = await response.json();
-      console.log('Success:', responseData);
-    } catch (error) {
-      //console.error('Error submitting job data:', error);
-      //alert('Failed to submit job data. Please check the console for more details.');
-    }
-  }
-
-  async fetchJobsDataAndPrepareForAPI() {
-    try {
-      const oauth = await this.initializeOAuth();
-      const currentTime = new Date();
-      const formattedTime = currentTime.toISOString(); // Use ISO format for API data
-
-      const results = await Promise.all([
-        oauth.getCellValue('B1'), // Total jobs applied today
-        oauth.getCellValue('B2'), // Total jobs applied in total
-        oauth.getCellValue('D1'), // Total advanced applications today
-        oauth.getCellValue('D2'), // Total advanced applications in total
-        oauth.getCellValue('F1'), // Total quick apply today
-        oauth.getCellValue('F2'), // Total quick apply in total
-        oauth.getCellValue('H1'), // Job search duration
-      ]);
-
-      const dataForAPI = {
-        timestamp: formattedTime,
-        totalJobsToday: results[0].values[0],
-        totalJobsTotal: results[1].values[0],
-        advancedApplicationsToday: results[2].values[0],
-        advancedApplicationsTotal: results[3].values[0],
-        quickApplyToday: results[4].values[0],
-        quickApplyTotal: results[5].values[0],
-        jobSearchDuration: results[6].values[0],
-      };
-      alert('Line 115 ' + JSON.stringify(dataForAPI, null, 2));
-      return dataForAPI;
-    } catch (error) {
-      console.error('Error fetching job application data:', error);
-      return {
-        error: 'Failed to fetch job application data. See console for details.',
-      };
-    }
   }
 
   /**
@@ -331,14 +230,14 @@ export default class JobForm {
 
       // Constructing a message from the fetched values, including the time
       const alertMessage = `
-  Function run at: ${formattedTime}
-  Total jobs applied today: ${results[0].values[0]}
-  Total jobs applied in total: ${results[1].values[0]}
-  Total advanced applications today: ${results[2].values[0]}
-  Total advanced applications in total: ${results[3].values[0]}
-  Total quick apply today: ${results[4].values[0]}
-  Total quick apply in total: ${results[5].values[0]}
-  Job search duration: ${results[6].values[0]}
+        Function run at: ${formattedTime}
+        Total jobs applied today: ${results[0].values[0]}
+        Total jobs applied in total: ${results[1].values[0]}
+        Total advanced applications today: ${results[2].values[0]}
+        Total advanced applications in total: ${results[3].values[0]}
+        Total quick apply today: ${results[4].values[0]}
+        Total quick apply in total: ${results[5].values[0]}
+        Job search duration: ${results[6].values[0]}
       `;
 
       // Displaying the combined message
@@ -348,25 +247,6 @@ export default class JobForm {
       alert(
         'Error fetching job application data. Please check the console for more details.'
       );
-    }
-  }
-
-  async retrieveData() {
-    alert('jobForm line 254');
-
-    const getURL =
-      'https://script.google.com/macros/s/AKfycbwJno2QaJwmhEJ4Glf7yKixDRCQxKggD2jCXSHxGwnGw-ZWY3aT9_bEL-4iXncORf9B/exec';
-    try {
-      const response = await fetch(`${getURL}?action=getUsers`, {
-        method: 'GET',
-      });
-      const data = await response.json();
-      console.log(data);
-      // Display data or log message depending on the requirement
-      alert(JSON.stringify(data, null, 2)); // Example of displaying data
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      alert('Error fetching data. Please check the console for more details.');
     }
   }
 

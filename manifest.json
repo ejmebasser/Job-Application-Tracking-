@@ -17,34 +17,18 @@
       "https://www.googleapis.com/auth/userinfo.profile"
     ]
   },
-  // These comments break JSON, will need to be removed
   "permissions": [
     "activeTab",
     "storage",
     "identity",
     "scripting",
-    // Do we need identity.email if we have identity? or should we limit to only email?
     "identity.email",
-    // This is for all googleapis.com, but we only need a few
-    "https://www.googleapis.com/",
-    // tabs is deprecated over activeTab
-    "tabs",
-    // which of these do we need?
-    "https://openidconnect.googleapis.com/",
-    // where is this used?
-    "notifications",
-    // are we still using the script API?
-    "https://script.google.com/*",
-    // where is this used?
-    "background"
+    "tabs"
   ],
   "host_permissions": [
     "https://www.linkedin.com/jobs/*",
     "https://www.indeed.com/*",
-    "https://www.glassdoor.com/*",
-    // Why are we getting permissions for all sites and not just the ones we need?
-    "http://*/*",
-    "https://*/*"
+    "https://www.glassdoor.com/*"
   ],
   "background": {
     "service_worker": "dist/background.bundle.js"
