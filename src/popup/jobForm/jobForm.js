@@ -1,5 +1,7 @@
 import OAuth from '../../user/oauth.js';
 import Utils from '../../utils/utils.js';
+import { requestUserInfo } from '../../utils/chrome.js';
+import Sheets from '../../user/sheets.js';
 
 /**
  * Class to handle the job form in the popup.
@@ -18,20 +20,7 @@ export default class JobForm {
     this.handleSubmit = this.handleSubmit.bind(this);
 
     this.utils = new Utils(jobForm, null);
-  }
-
-  /**
-   * Function to ensure that the OAuth object is available and has been authorized.
-   *
-   * @return {OAuth} The OAuth object.
-   */
-  async initializeOAuth() {
-    if (!this.oauth) {
-      const oauth = new OAuth();
-      this.oauth = await oauth.getOAuth();
-    }
-
-    return this.oauth;
+    this.sheets = new Sheets();
   }
 
   /**
@@ -195,6 +184,12 @@ export default class JobForm {
         console.error('Error:', error);
       });
   }
+
+  /**
+   * Test that the OAuth object is working and can fetch a value from the Google Sheet.
+   *
+   * @returns The value of the cell B1
+   */
   async tester_Value_return() {
     try {
       const oauth = await this.initializeOAuth();
@@ -207,6 +202,9 @@ export default class JobForm {
     }
   }
 
+  /**
+   * Fetches the job data from the saved sheet and alerts the user.
+   */
   async fetchJobsAndAlert() {
     try {
       const oauth = await this.initializeOAuth();
@@ -218,26 +216,18 @@ export default class JobForm {
       const formattedTime = currentTime.toLocaleString();
 
       // Fetching values from multiple cells simultaneously
-      const results = await Promise.all([
-        oauth.getCellValue('B1'), // Total jobs applied today
-        oauth.getCellValue('B2'), // Total jobs applied in total
-        oauth.getCellValue('D1'), // Total advanced applications today
-        oauth.getCellValue('D2'), // Total advanced applications in total
-        oauth.getCellValue('F1'), // Total quick apply today
-        oauth.getCellValue('F2'), // Total quick apply in total
-        oauth.getCellValue('H1'), // Job search duration
-      ]);
+      const results = await this.sheets.fetchJobsDataAndPrepareForAPI();
 
       // Constructing a message from the fetched values, including the time
       const alertMessage = `
-        Function run at: ${formattedTime}
-        Total jobs applied today: ${results[0].values[0]}
-        Total jobs applied in total: ${results[1].values[0]}
-        Total advanced applications today: ${results[2].values[0]}
-        Total advanced applications in total: ${results[3].values[0]}
-        Total quick apply today: ${results[4].values[0]}
-        Total quick apply in total: ${results[5].values[0]}
-        Job search duration: ${results[6].values[0]}
+        Function run at: ${results.timestamp}
+        Total jobs applied today: ${results.totalJobsToday}
+        Total jobs applied in total: ${results.totalJobsTotal}
+        Total advanced applications today: ${results.advancedApplicationsToday}
+        Total advanced applications in total: ${results.advancedApplicationsTotal}
+        Total quick apply today: ${results.quickApplyToday}
+        Total quick apply in total: ${results.quickApplyTotal}
+        Job search duration: ${results.jobSearchDuration}
       `;
 
       // Displaying the combined message
@@ -269,32 +259,7 @@ export default class JobForm {
   }
 }
 
-function getChromeStorageData(key) {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(key, (result) => {
-      if (chrome.runtime.lastError) {
-        return reject(chrome.runtime.lastError);
-      }
-      resolve(result[key]);
-    });
-  });
-}
-
-async function requestUserInfo() {
-  try {
-    const userInfo = await getChromeStorageData('userInfo');
-    if (userInfo) {
-      console.log('User info retrieved:', userInfo);
-      return userInfo; // Use or return userInfo as needed
-    } else {
-      throw new Error('No user info found.');
-    }
-  } catch (error) {
-    console.error(error);
-    // Handle error or absence of userInfo as needed
-  }
-}
-
+// Function to check if the "Easy Apply" button is available on the page
 function isEasyApplyAvailable() {
   // Search for a button that contains the text "Easy Apply"
   const easyApplyButton = Array.from(document.querySelectorAll('button')).find(
@@ -307,42 +272,4 @@ function isEasyApplyAvailable() {
   } else {
     return 'ADVANCED APPLY';
   }
-}
-
-function fetchUsernameEmail() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get('userInfo', (result) => {
-      if (chrome.runtime.lastError) {
-        // Handle errors during storage access
-        console.error(
-          'Error retrieving user info from chrome.storage:',
-          chrome.runtime.lastError
-        );
-        reject(chrome.runtime.lastError);
-      } else {
-        // Check if the userInfo exists and is not undefined
-        if (result.userInfo) {
-          console.log('Retrieved user email from storage:', result.userInfo);
-          resolve(result.userInfo);
-        } else {
-          console.log('No user info found in storage.');
-          reject(new Error('No user info found in storage.'));
-        }
-      }
-    });
-  });
-}
-
-// Make sure this code exists in a context where chrome.runtime.onMessage is accessible
-// Typically this would be in a background script or a content script
-
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-  if (request.action === 'invokeTestAlert') {
-    testAlert();
-    sendResponse({ message: 'Alert displayed successfully' });
-  }
-});
-
-function testAlert() {
-  alert('This is data from the test alert on the jobform.js');
 }

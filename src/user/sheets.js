@@ -79,6 +79,18 @@ export default class Sheets extends OAuth {
   }
 
   /**
+   * Get the values of a range of cells in a Google Sheet.
+   *
+   * @param {string} startingCell The label of the starting cell in A1 notation
+   * @param {string} endingCell The label of the ending cell in A1 notation
+   * @return {object} The values of the range of cells.
+   */
+  async getRangeValues(startingCell, endingCell) {
+    const a1Notation = `${startingCell}:${endingCell}`;
+    return this.getCellValues(a1Notation);
+  }
+
+  /**
    * Append a row of values to a Google Sheet. The order of the rows is specified in the resource object, with the values array.
    * There may be a better way to map this data to the Google Sheet.
    *
@@ -123,40 +135,50 @@ export default class Sheets extends OAuth {
 
   /**
    * Get the jobs data from the Google Sheet. This is for job analytics.
+   * The result is a multi-dimensional array of values.
+   * [
+   *   [totalJobsToday, totalJobsTotal],
+   *   [unused, unused],
+   *   [advancedApplicationsToday, advancedApplicationsTotal],
+   *   [unused, unused],
+   *   [quickApplyToday, quickApplyTotal],
+   *   [unused, unused],
+   *   [jobSearchDuration, unused]
+   * ]
    *
    * @return {Object} The object containing the jobs data.
    */
   async getJobsData() {
-    console.log(this);
     //const result = await oauth.getCellValue('B1'); // No need for Promise.all if you're only fetching one value
-    const results = await Promise.all([
-      this.getCellValue('B1'), // Total jobs applied today
-      this.getCellValue('B2'), // Total jobs applied in total
-      this.getCellValue('D1'), // Total advanced applications today
-      this.getCellValue('D2'), // Total advanced applications in total
-      this.getCellValue('F1'), // Total quick apply today
-      this.getCellValue('F2'), // Total quick apply in total
-      this.getCellValue('H1'), // Job search duration
-    ]);
+    // const results = await Promise.all([
+    //   this.getCellValue('B1'), // Total jobs applied today
+    //   this.getCellValue('B2'), // Total jobs applied in total
+    //   this.getCellValue('D1'), // Total advanced applications today
+    //   this.getCellValue('D2'), // Total advanced applications in total
+    //   this.getCellValue('F1'), // Total quick apply today
+    //   this.getCellValue('F2'), // Total quick apply in total
+    //   this.getCellValue('H1'), // Job search duration
+    // ]);
+
+    const results = this.getRangeValues('B1', 'H2');
+    console.log('results:', results);
 
     // Map results to extract values, assuming each result is an object with a structure {values: [[value]]}
-    const data = results.map((result) => result.values[0][0]);
+    // const data = results.map((result) => result.values[0][0]);
 
     // Constructing an object with all the fetched data
     const dataForAPI = {
-      totalJobsToday: data[0],
-      totalJobsTotal: data[1],
-      advancedApplicationsToday: data[2],
-      advancedApplicationsTotal: data[3],
-      quickApplyToday: data[4],
-      quickApplyTotal: data[5],
-      jobSearchDuration: data[6],
+      totalJobsToday: results[0][0],
+      totalJobsTotal: results[0][1],
+      advancedApplicationsToday: results[2][0],
+      advancedApplicationsTotal: results[2][1],
+      quickApplyToday: results[4][0],
+      quickApplyTotal: results[4][1],
+      jobSearchDuration: results[6][0],
     };
 
     // Why is this an object containing an object?
-    return {
-      dataForAPI,
-    };
+    return dataForAPI;
   }
 
   async fetchJobsDataAndPrepareForAPI() {

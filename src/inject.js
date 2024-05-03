@@ -1,3 +1,5 @@
+import { requestUserInfo } from './utils/chrome';
+
 let autoSave = false;
 let autoHide = false;
 let savedApplication = false;
@@ -79,60 +81,6 @@ function onLoad() {
   }
 }
 
-// function addApplyButtonListener() {
-//   document.addEventListener('click', async function(event) {
-//     if (event.target.matches('.jobs-apply-button') || event.target.closest('.jobs-apply-button')) {
-//       alert('Button pressed 70');
-//       let easyApply = isEasyApplyAvailable()
-//       chrome.runtime.sendMessage({action: "easyApplyClicked"}, function(response) {
-//         console.log(response.status);
-//     });
-// alert('line92');
-// alert('line 93');
-//       // Determine the website name based on the window.location.host or another characteristic
-//       let websiteName = 'Unknown Website'; // Default value
-//       if (window.location.href.indexOf('linkedin.com') !== -1) {
-//         websiteName = 'LinkedIn';
-//       } else if (window.location.href.indexOf('indeed.com') !== -1) {
-//         websiteName = 'Indeed';
-//       } // Add more conditions for other websites as needed
-// alert('line 101');
-//       // Example of what you might want to collect; adjust based on actual content and requirements
-//       const email = await requestUserInfo(); // Await the email from requestUserInfo
-//       alert('line 104')
-//       const jobData = {
-//         jobTitle: getText('.job-details-jobs-unified-top-card__job-title') || 'Unknown Title',
-//         company: getText('.job-details-jobs-unified-top-card__primary-description-without-tagline a') || 'Unknown Company',
-//         applicationDateTime: formatCurrentDateTime(),
-//         source: websiteName, // Add the website name here
-//         url: window.location.href,
-//         email: email, // Set the email value here
-//         applicationType:easyApply
-//       };
-
-//       // Call saveJob function with the collected job data
-//       saveJob(jobData);
-//       alert('line 109 of inject.js')
-//       // Assuming dismissJob requires a dismissButton element
-//       //nst activeJobCard = document.querySelector('.jobs-search-results-list__list-item--active-v2');
-//       const dismissButton = document.querySelector('.jobs-search-results-list__list-item--active-v2 .job-card-container__action')?.click();
-//       if(dismissButton) {
-//         dismissJob(dismissButton);
-//       } else {
-//         console.log('Dismiss button not found.');
-//       }
-//     alert('line 118, we will try to get the email name here--417PM')
-//     const alpha = requestUserInfo()
-//     alert(alpha);
-//     const beta = fetchJobsDataAndPrepareForAPI();
-//     alert(beta);
-
-//   }
-// //alert('line 119 of inject.js hit')
-//   });
-//   //alert('line 121 of inject.js hit')
-//   //requestUserEmail()
-// }
 //Look here
 async function addApplyButtonListener() {
   document.addEventListener('click', async function (event) {
@@ -404,6 +352,11 @@ export function saveJob(formData) {
   );
 }
 
+/**
+ * Send a message to add the job to the list of applied jobs.
+ *
+ * @param {*} jobId
+ */
 function addJobToApplied(jobId) {
   chrome.runtime.sendMessage({ action: 'addJobToApplied', jobId: jobId });
 }
@@ -500,18 +453,6 @@ export function parseUrl(url) {
   }
 
   return storage;
-}
-
-function requestUserInfo() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get('userInfo', function (data) {
-      if (data.userInfo) {
-        resolve(data.userInfo); // Resolve with the user info
-      } else {
-        reject('No user info found.'); // Reject if no user info
-      }
-    });
-  });
 }
 
 //add in function here to figure out if its a quick apply or not:
@@ -627,86 +568,6 @@ function isEasyApplyAvailable() {
 //     });
 //   });
 // }
-
-function fetchJobsDataAndPrepareForAPI() {
-  return new Promise((resolve, reject) => {
-    fetchUsernameEmail()
-      .then((email) => {
-        alert('Email retrieved: ' + email); // Display the retrieved email in an alert
-
-        chrome.runtime.sendMessage({ action: 'fetchJobsData' }, (response) => {
-          if (response.success && response.data && response.data.dataForAPI) {
-            console.log('Data fetched:', response.data);
-
-            const apiData = response.data.dataForAPI;
-
-            const structuredData = {
-              timestamp: apiData.timestamp || new Date().toISOString(),
-              totalJobsToday:
-                typeof apiData.totalJobsToday === 'string'
-                  ? apiData.totalJobsToday
-                  : 'undefined',
-              totalJobsTotal:
-                typeof apiData.totalJobsTotal === 'string'
-                  ? apiData.totalJobsTotal
-                  : 'undefined',
-              advancedApplicationsToday:
-                typeof apiData.advancedApplicationsToday === 'string'
-                  ? apiData.advancedApplicationsToday
-                  : 'undefined',
-              advancedApplicationsTotal:
-                typeof apiData.advancedApplicationsTotal === 'string'
-                  ? apiData.advancedApplicationsTotal
-                  : 'undefined',
-              quickApplyToday:
-                typeof apiData.quickApplyToday === 'string'
-                  ? apiData.quickApplyToday
-                  : 'undefined',
-              quickApplyTotal:
-                typeof apiData.quickApplyTotal === 'string'
-                  ? apiData.quickApplyTotal
-                  : 'undefined',
-              jobSearchDuration:
-                typeof apiData.jobSearchDuration === 'string'
-                  ? apiData.jobSearchDuration
-                  : 'undefined',
-              userName: email || 'undefined', // Use the fetched email in the data structure
-            };
-
-            // Submit the structured data
-            chrome.runtime.sendMessage(
-              {
-                action: 'submitToMasterTracker',
-                data: structuredData,
-              },
-              (submitResponse) => {
-                if (submitResponse.success) {
-                  console.log(
-                    'Data submitted successfully:',
-                    submitResponse.data
-                  );
-                  resolve(submitResponse.data);
-                } else {
-                  console.error('Failed to submit data:', submitResponse.error);
-                  reject(submitResponse.error);
-                }
-              }
-            );
-          } else {
-            console.error(
-              'Failed to fetch data or data is improperly structured:',
-              response.error
-            );
-            reject('Data fetch failed or data structure incorrect');
-          }
-        });
-      })
-      .catch((error) => {
-        console.error('Failed to retrieve email:', error);
-        reject('Email retrieval failed: ' + error.message);
-      });
-  });
-}
 
 document.addEventListener('DOMContentLoaded', function () {
   fetchUsernameEmail()
