@@ -1,4 +1,3 @@
-import OAuth from '../../user/oauth.js';
 import Utils from '../../utils/utils.js';
 import { requestUserInfo } from '../../utils/chrome.js';
 import Sheets from '../../user/sheets.js';
@@ -16,7 +15,7 @@ export default class JobForm {
     this.form = jobForm;
 
     this.updateForm = this.updateForm.bind(this);
-    this.loadData = this.loadData.bind(this);
+    this.loadData = this.handleLoadData.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
 
     this.utils = new Utils(jobForm, null);
@@ -29,19 +28,20 @@ export default class JobForm {
    * @param {object} formData The object to populate the form with.
    */
   async updateForm(formData) {
-    console.log(formData);
+    // console.log(formData);
     for (const id in formData) {
       try {
         this.form.querySelector(`input[name="${id}"]`).value = formData[id];
       } catch (error) {
+        console.error(`id ${id} does not have a value parameter`);
         console.error(error);
       }
     }
 
     const appliedJobs = await this.utils.getAppliedJobs();
     const jobId = this.utils.getJobIdFromUrl(formData.url);
-    console.log('appliedJobs:', appliedJobs);
-    console.log('jobId:', jobId);
+    // console.log('appliedJobs:', appliedJobs);
+    // console.log('jobId:', jobId);
     if (appliedJobs.includes(jobId)) {
       this.utils.hideElement('#saveData');
       this.utils.appendMessage('#result', 'Job already applied to');
@@ -244,13 +244,13 @@ export default class JobForm {
    * Handles the load data button click event.
    * This will send the loadData action to the content script.
    */
-  loadData() {
+  handleLoadData() {
     // There is a bit of tricky scoping with this within this function.
     // We are going to use another variable to reference this to avoid the scoping issue.
     const jobForm = this;
 
     this.utils.sendMessage({ action: 'loadData' }, function (response) {
-      console.log('loadData response:', response);
+      // console.log('loadData response:', response);
       if (response) {
         jobForm.updateForm(response);
         // alert('line 144 triggered from jobForm.js')
