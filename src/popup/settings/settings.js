@@ -1,5 +1,6 @@
-import OAuth from '../utils/oauth';
-import Utils from '../utils/utils';
+import OAuth from '../../user/oauth';
+import Utils from '../../utils/utils';
+import Sheets from '../../user/sheets';
 
 /**
  * Class to handle the settings form.
@@ -22,15 +23,7 @@ export default class Settings {
 
     this.utils = new Utils(settingsForm, jobForm);
     this.fields = this.utils.formToObj(settingsForm);
-  }
-
-  async initializeOAuth() {
-    if (!this.oauth) {
-      const oauth = new OAuth();
-      this.oauth = await oauth.getOAuth();
-    }
-
-    return this.oauth;
+    this.sheets = new Sheets();
   }
 
   /**
@@ -61,7 +54,6 @@ export default class Settings {
    */
   buildSheetURL(sheetId) {
     return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/edit#gid=0';
-    // THE HYPER LINK TO THE SHEET.
   }
 
   createSheetLink(sheetId) {
@@ -72,7 +64,6 @@ export default class Settings {
     link.target = '_blank';
     this.sheetElement.appendChild(link);
   }
-  // THIS IS THE HYPER LINK
 
   /**
    * Update the values of the settings fields from stored values.
@@ -142,8 +133,7 @@ export default class Settings {
       sheetSelector.setAttribute(attr.name, attr.value);
     }
 
-    const oauth = await this.initializeOAuth();
-    const files = await oauth.getSheets();
+    const files = await this.sheets.getSheets();
     files.forEach((sheet) => {
       const option = document.createElement('option');
       option.value = sheet.id;
@@ -169,8 +159,6 @@ export default class Settings {
    * @param {*} spreadsheetId
    */
   async populateSheetNameList(spreadsheetId) {
-    const oauth = await this.initializeOAuth();
-
     const sheetInput = this.settingsForm.querySelector(
       'input[name="sheetName"], select[name="sheetName"]'
     );
@@ -181,7 +169,7 @@ export default class Settings {
       sheetSelector.setAttribute(attr.name, attr.value);
     }
 
-    const sheetNames = await oauth.getSheetNames(spreadsheetId);
+    const sheetNames = await this.sheets.getSheetNames(spreadsheetId);
     sheetNames.forEach((sheet) => {
       const option = document.createElement('option');
       option.value = sheet;

@@ -21,21 +21,14 @@
     "activeTab",
     "storage",
     "identity",
-    "scripting", 
-    "identity.email", 
-    "https://www.googleapis.com/", 
-    "tabs",
-    "https://openidconnect.googleapis.com/",
-    "notifications",
-    "https://script.google.com/*",
-    "background"
+    "scripting",
+    "identity.email",
+    "tabs"
   ],
   "host_permissions": [
     "https://www.linkedin.com/jobs/*",
     "https://www.indeed.com/*",
-    "https://www.glassdoor.com/*",
-    "http://*/*",
-    "https://*/*"
+    "https://www.glassdoor.com/*"
   ],
   "background": {
     "service_worker": "dist/background.bundle.js"
