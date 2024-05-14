@@ -144,13 +144,13 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ensure oauth is initialized and has authToken
         try {
           const userEmail = await oauth.getUsername();
-          alert(`Data sharing is ON. User email: ${userEmail}`);
+          //alert(`Data sharing is ON. User email: ${userEmail}`);
         } catch (error) {
           console.error('Failed to fetch user email:', error);
-          alert('Data sharing is ON, but failed to fetch user email.');
+          //alert('Data sharing is ON, but failed to fetch user email.');
         }
       } else {
-        alert('Data sharing is OFF.');
+        //alert('Data sharing is OFF.');
       }
     });
   }

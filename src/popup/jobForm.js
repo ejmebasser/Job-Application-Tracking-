@@ -168,7 +168,7 @@ export default class JobForm {
         saveButton.textContent = 'Save Data';
       });
     const autoHideCheckbox = document.querySelector('input[name="autoHide"]');
-    alert(autoHideCheckbox.checked)
+    //alert(autoHideCheckbox.checked)
     if (autoHideCheckbox && autoHideCheckbox.checked) {
         // Job dismissal code runs only if the autoHide checkbox is checked
         chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
@@ -199,14 +199,14 @@ export default class JobForm {
     }
     
     ///end of dismissing of a
-    alert('line 434-01');
+    //alert('line 434-01');
    // Check the value of 'dataConsent' input field
    // Correctly check the 'dataConsent' checkbox status
    const dataConsentCheckbox = document.querySelector('input[name="dataConsent"]');
    console.log("DataConsentCheckbox:", dataConsentCheckbox);
 
    if (dataConsentCheckbox) {
-       alert(dataConsentCheckbox);
+       //alert(dataConsentCheckbox);
        const isDataConsentEnabled = dataConsentCheckbox.checked;
        console.log("Is data consent enabled:", isDataConsentEnabled);
        if (isDataConsentEnabled) {
