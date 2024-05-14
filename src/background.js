@@ -224,7 +224,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true; // Indicate asynchronous response
   }
-  // Handle other messages...
 });
 
 
