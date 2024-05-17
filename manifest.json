@@ -2,13 +2,13 @@
   "manifest_version": 3,
   "name": "JobApplicationTrakr",
   "version": "1.0.0",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg0fec3FiQX4EVGIs8davZV7M16XxDpzwCe6NJkqi7lDcfTrM3uduBn/spanMBBk8MYqeK836JLrszSz7d9WnM4YrgiHG4sd5tyuY0DW1aVxk9hqrj/1OuubtwU6CyZD7QaWnUx6ulhc6HCG/yw0ZmQ0FNWF+PPoM/Aswuuqk6+V37omcuBEO6K2cQ9ERrcb1cG81znCC4faHbLOszNUkoCcfYXhlxs1VmddHTqdr3N7YAaeTOK10QNBkWv3sMWd1khXb+VX/yk02GCcos4cs48AYl9tlDh4Ug0/Y2QIGkEG4giw46AgOkY6YW7y1g1wUQ45F1besnNb8R1QmkUP7kwIDAQAB",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkcuTkm7x7wfaLFR3NsNl8ydwkNdrHx8uyyZTTGkhwthLdY7VRMdA62Og6PBPlR+whDyMI+4V45iLpH+dWR7Xi/yIZ+wP7oQ4rbxOP5b3R8eJ0T/qK57DUBbcHVWY72eoc34CGnmbk3fYJyxAj0GMuilfF6+dVBC6OHaZ9zNMfS8I1Frq/oc66CDvvkhhFVPP+6FTB8YcVR8R3H2G9TXcywchqZvGzfFJ+JqVb+6dRtyl88HNN8yR2fLTG1xwq07aLhBYWmgUoZ4WELwoE7/2gLFG5BfcM/aaNL6wiOgS5NEriBFTC8Wu2adUL+1bgHbWgGcJ61pcXv78dtZqY0eA6wIDAQAB",
   "action": {
     "default_popup": "popup.html",
     "default_title": "JobApplicationTrakr"
   },
   "oauth2": {
-    "client_id": "40510895582-6gg1iiips6aq3rf2kl1c50deg4nlsv46.apps.googleusercontent.com",
+    "client_id": "78616591285-lp7kta5n5uiokila8emrr503490ug3as.apps.googleusercontent.com",
     "scopes": [
       "openid",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -47,7 +47,8 @@
         "https://www.indeed.com/*",
         "https://www.glassdoor.com/*"
       ],
-      "js": ["dist/inject.bundle.js"]
+      "js": ["dist/inject.bundle.js"],
+      "run_at": "document_end"
     }
   ]
 }

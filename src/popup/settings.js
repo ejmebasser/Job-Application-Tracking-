@@ -36,38 +36,44 @@ export default class Settings {
   /**
    * Function to handle the saveSheet button click event.
    */
-  // saveSettings() {
-  //   const values = this.utils.formToObj(this.settingsForm);
-  //   // GRABBING THE VALUES OF THE SETTING FORM
-  //   if (values.sheetId) {
-  //     this.createSheetLink(values.sheetId);
-  //     // THIS IS THE LINK TO THE DOCUMENT WITH A PRESS OF A BUTTON
-  //   }
-  //   this.storeSettingsValues(values);
-  //   // STORES IT IN STORAGE
-  //   this.sendAutoSettingMessage('autoSave', values.autoSave);
-  //   this.sendAutoSettingMessage('autoHide', values.autoHide);
-  //   // THIS WORKS IN TANDEM WITH THE INJECT & BACKGROUND SCRIPT to signal if htey can save or not.
-
-  //   this.utils.toggleCogFunction();
-  //   // SWQITCHING BETWEEN TEH SETTINGS FORM AND THE JOB FORM.
-  // }
   saveSettings() {
     const values = this.utils.formToObj(this.settingsForm);
+    // GRABBING THE VALUES OF THE SETTING FORM
     if (values.sheetId) {
-        this.createSheetLink(values.sheetId);
+      this.createSheetLink(values.sheetId);
+      // THIS IS THE LINK TO THE DOCUMENT WITH A PRESS OF A BUTTON
     }
+    this.storeSettingsValues(values);
+    // STORES IT IN STORAGE
 
-    // Store the settings in chrome.storage
     chrome.storage.local.set({settings: values}, () => {
         console.log('Settings have been saved to chrome.storage');
     });
 
+
     this.sendAutoSettingMessage('autoSave', values.autoSave);
     this.sendAutoSettingMessage('autoHide', values.autoHide);
+    // THIS WORKS IN TANDEM WITH THE INJECT & BACKGROUND SCRIPT to signal if htey can save or not.
 
     this.utils.toggleCogFunction();
-}
+    // SWQITCHING BETWEEN TEH SETTINGS FORM AND THE JOB FORM.
+  }
+//   saveSettings() {
+//     const values = this.utils.formToObj(this.settingsForm);
+//     if (values.sheetId) {
+//         this.createSheetLink(values.sheetId);
+//     }
+
+//     // Store the settings in chrome.storage
+//     chrome.storage.local.set({settings: values}, () => {
+//         console.log('Settings have been saved to chrome.storage');
+//     });
+
+//     this.sendAutoSettingMessage('autoSave', values.autoSave);
+//     this.sendAutoSettingMessage('autoHide', values.autoHide);
+
+//     this.utils.toggleCogFunction();
+// }
 
   /**
    * Create the URL link to the Google Sheet using the sheetId.

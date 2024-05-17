@@ -158,13 +158,13 @@ export default class JobForm {
           this.fetchTotalJobsAppliedToday();
           //alert('testing data sharing');
         } else {
-          console.error('Error:', response);
-          this.utils.appendMessage('#result', 'Error submitting data');
+          console.error('Error:-01', response);
+          this.utils.appendMessage('#result', 'Error submitting data-01');
         }
       })
       .catch((error) => {
         console.error('Error:', error);
-        this.utils.appendMessage('#result', 'Error submitting data');
+        this.utils.appendMessage('#result', 'Error submitting data-02');
         saveButton.textContent = 'Save Data';
       });
     const autoHideCheckbox = document.querySelector('input[name="autoHide"]');
@@ -233,7 +233,8 @@ export default class JobForm {
     const oauth = await this.initializeOAuth();
     oauth.getCellValue('B1')
       .then((data) => {
-        const totalJobsToday = data.values[0];
+        //const totalJobsToday = data.values[0];
+        const totalJobsToday = 'data here'
         this.utils.appendMessage('#result', `${totalJobsToday} jobs applied to in total today`);
       })
       .catch((error) => {

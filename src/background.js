@@ -2,6 +2,7 @@
 import OAuth from './utils/oauth';
 import Utils from './utils/utils';
 
+
 const utils = new Utils();
 let oauth = new OAuth();
 
@@ -63,20 +64,48 @@ async function onLoad() {
   });
 }
 
-// listen for tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  // console.log('changeInfo', changeInfo);
-  // check for a URL in the changeInfo parameter (url is only added when it is changed)
+// // listen for tab updates
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+//   // console.log('changeInfo', changeInfo);
+//   // check for a URL in the changeInfo parameter (url is only added when it is changed)
+//   if (changeInfo.status === 'complete') {
+//     console.log('tab updated, sending reset message');
+//     // inject the script to the tab
+//     setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
+//   }
+// });
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  // Check if the tab's status is 'complete'
   if (changeInfo.status === 'complete') {
     console.log('tab updated, sending reset message');
-    // inject the script to the tab
-    setTimeout(() => utils.sendMessage({ action: 'tabUpdated' }), 500);
+    
+    // Inject the content script to the tab
+    chrome.scripting.executeScript({
+      target: { tabId: tabId },
+      files: ['dist/inject.bundle.js']
+    }, () => {
+      // After injecting the script, send the reset message
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tabId, { action: 'tabUpdated' });
+      }, 500);
+    });
   }
 });
+
 
 // Open the popup when the extension icon is clicked
 chrome.action.onClicked.addListener(() => {
   chrome.tabs.openPopup();
+});
+
+chrome.action.onClicked.addListener(async function(tab) {
+  try {
+    const sheets = await oauth.getSheets();
+    console.log('Sheets:', sheets);
+  } catch (error) {
+    console.error('Error fetching sheets:', error);
+  }
 });
 
 /**
