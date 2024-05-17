@@ -233,8 +233,8 @@ export default class JobForm {
     const oauth = await this.initializeOAuth();
     oauth.getCellValue('B1')
       .then((data) => {
-        //const totalJobsToday = data.values[0];
-        const totalJobsToday = 'data here'
+        const totalJobsToday = data.values[0];
+        //const totalJobsToday = 'data here'
         this.utils.appendMessage('#result', `${totalJobsToday} jobs applied to in total today`);
       })
       .catch((error) => {
